@@ -3,7 +3,7 @@
 
 GameObject::GameObject(const std::string& textureSheet, SDL_Renderer* renderer, float x0, float y0) : 
 xPos_(x0), yPos_(y0), renderer_(renderer) {
-    texture_= TextureManager::loadTexture(textureSheet, renderer_);
+    texture_= TextureManager::loadTexture(textureSheet);
 }
 
 void GameObject::update(){

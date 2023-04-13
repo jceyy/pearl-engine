@@ -10,7 +10,7 @@ endif(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES debug)
 message("\n")
 message("Build type is ${CMAKE_BUILD_TYPE}")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic -std=c++11")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic -std=c++11") # -fsanitize=address
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -38,7 +38,15 @@ add_executable(engine-test
 src/main.cpp 
 src-engine/Game.cpp 
 src-engine/TextureManager.cpp
-src-engine/GameObject.cpp)
+src-engine/GameObject.cpp
+src-engine/Vector2D.cpp
+src-engine/Collision.cpp
+src-engine/ECS/ECS.cpp
+src-engine/ECS/TransformComponent.cpp
+src-engine/ECS/SpriteComponent.cpp
+src-engine/ECS/KeyboardController.cpp
+src-engine/ECS/ColliderComponent.cpp
+)
 
 target_link_libraries(engine-test ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES})
 

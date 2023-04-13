@@ -8,10 +8,11 @@
 class TextureManager{
 
 public:
-    TextureManager();
-    ~TextureManager();
+    virtual ~TextureManager() = 0;
 
-    static SDL_Texture* loadTexture(const std::string& fileName, SDL_Renderer* renderer);
+    static SDL_Texture* loadTexture(const std::string& fileName);
+    static SDL_Texture* loadTexture(const std::string& fileName, int& w, int& h);
+    static void Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst);
 };
 
 

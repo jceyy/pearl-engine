@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <string>
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 class Game{
 
@@ -20,12 +20,12 @@ public:
     void clean();
 
     inline bool isRunning() {return isRunning_;};
+    static SDL_Renderer *renderer;
+    static SDL_Event event;
 
 private:
     bool isRunning_;
     SDL_Window *window_;
-    SDL_Renderer *renderer_;
-
 };
 
 #endif // GAME_HPP
