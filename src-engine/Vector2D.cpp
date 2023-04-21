@@ -37,6 +37,14 @@ float Vector2D::dotProduct(const Vector2D& v1, const Vector2D& v2) {
     return v1.dotProduct(v2);
 }
 
+float Vector2D::crossProduct(const Vector2D& vec) const {
+    return x*vec.y - y*vec.x;
+}
+
+float Vector2D::crossProduct(const Vector2D& v1, const Vector2D& v2) {
+    return v1.x*v2.y - v1.y*v2.x;
+}
+
 float Vector2D::norm2() const {
     return x*x + y*y;
 }

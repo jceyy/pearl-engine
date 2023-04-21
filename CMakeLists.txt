@@ -41,11 +41,13 @@ src-engine/TextureManager.cpp
 src-engine/GameObject.cpp
 src-engine/Vector2D.cpp
 src-engine/Collision.cpp
+src-engine/TileMap.cpp
 src-engine/ECS/ECS.cpp
 src-engine/ECS/TransformComponent.cpp
 src-engine/ECS/SpriteComponent.cpp
 src-engine/ECS/KeyboardController.cpp
 src-engine/ECS/ColliderComponent.cpp
+src-engine/ECS/TileComponent.cpp
 )
 
 target_link_libraries(engine-test ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES})

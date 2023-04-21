@@ -8,10 +8,9 @@ ColliderComponent::ColliderComponent(const std::string& t) : tag(t) {
 }
 
 void ColliderComponent::init() {
-    if (!entity->hasComponent<TransformComponent>()) {
-        entity->addComponent<TransformComponent>();
-    }
+    entity->addComponent<TransformComponent>();
     transform = &entity->getComponent<TransformComponent>();
+    Game::colliders.push_back(this);
 }
 
 void ColliderComponent::update() {

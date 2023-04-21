@@ -3,8 +3,10 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "Collision.hpp"
 
 class Game{
 
@@ -20,8 +22,11 @@ public:
     void clean();
 
     inline bool isRunning() {return isRunning_;};
+    
+    static void addTile(float x, float y, int id);
     static SDL_Renderer *renderer;
     static SDL_Event event;
+    static std::vector<ColliderComponent*> colliders;
 
 private:
     bool isRunning_;

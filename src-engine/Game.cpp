@@ -4,14 +4,30 @@
 #include "ECS/Components.hpp"
 #include "Types.hpp"
 #include "Collision.hpp"
+#include "TileMap.hpp"
 
 EntityManager manager;
 SDL_Event Game::event;
+TileMap* tileMap;
+auto& tile0(manager.addEntity());
+auto& tile1(manager.addEntity());
+auto& tile2(manager.addEntity());
 auto& wall(manager.addEntity());
 auto& player(manager.addEntity());
 
+enum groupLabels : std::size_t{
+    groupMap,
+    groupPlayers,
+    groupEnemies,
+    groupColliders
+};
+
+
+
+
 
 SDL_Renderer* Game::renderer = nullptr;
+std::vector<ColliderComponent*> Game::colliders;
 
 Game::Game() {}
 
@@ -43,27 +59,30 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         }
 
         isRunning_ = true;
+
+        // Load objects
+        TileMap::loadMap("assets/map16x16.map", 16, 16);
+
         player.addComponent<TransformComponent>(-4, -14, .125);
         player.addComponent<SpriteComponent>();
-        player.getComponent<SpriteComponent>().setTexture("../assets/parachute.png");
+        player.getComponent<SpriteComponent>().setTexture("assets/parachute.png");
         player.addComponent<KeyboardController>();
-        player.addComponent<ColliderComponent>();
+        player.addComponent<ColliderComponent>("player");
+        player.addGroup(groupPlayers);
 
         wall.addComponent<TransformComponent>(300, 200, 200, 200, 1.0f);
-        wall.addComponent<ColliderComponent>();
+        // wall.addComponent<ColliderComponent>("camera");
         wall.addComponent<SpriteComponent>();
-        wall.getComponent<SpriteComponent>().setTexture("../assets/camera.png");
+        wall.getComponent<SpriteComponent>().setTexture("assets/camera.png");
+        wall.addGroup(groupMap);
+        
         manager.refresh();
         manager.update();
+
     }
     else{
         isRunning_ = false;
     }
-    // Debug only
-    // Vector2D v1(1, 2), v2(1, 1), v3;
-    // std::cout << v1 << v2 << v3 << std::endl;
-    // v3 = v1 + v2;
-    // std::cout << v1 << v2 << v3 << std::endl;
 }
 
 void Game::handleEvents() {
@@ -83,28 +102,36 @@ void Game::handleEvents() {
     }
 }
 
+auto& tiles(manager.getGroup(groupMap));
+auto& players(manager.getGroup(groupPlayers));
+auto& enemies(manager.getGroup(groupEnemies));
+
 void Game::render() {
     SDL_RenderClear(renderer);
-    manager.draw();
+
+    for (auto& t : tiles){
+        t->draw();
+    }
+    for (auto& e : enemies){
+        e->draw();
+    }
+    for (auto& p : players){
+        p->draw();
+    }
+
+    // manager.draw();
     SDL_RenderPresent(renderer);
 }
 
 
-bool previously_collision = false;
-bool collide = false;
 void Game::update() {
     manager.refresh();
     manager.update();
-    collide = Collision::AABB(player.getComponent<ColliderComponent>().collider, 
-    wall.getComponent<ColliderComponent>().collider);
 
-    if (collide and !previously_collision){
-        std::cout << "\033[1;31mCollision!!\033[0m\n";
-        previously_collision = !previously_collision;
-    }
-    else if (!collide and previously_collision){
-        std::cout << "\033[1;32mNo collision\033[0m\n";
-        previously_collision = !previously_collision;
+
+    for (auto cc : colliders) {
+        if (cc != &player.getComponent<ColliderComponent>())
+            Collision::AABB(player.getComponent<ColliderComponent>(), *cc);
     }
 }
 
@@ -116,3 +143,9 @@ void Game::clean() {
     std::cout << "Game cleaned" << std::endl;
 }
 
+
+void Game::addTile(float x, float y, int id){
+    auto &tile(manager.addEntity());
+    tile.addComponent<TileComponent>(x, y, 32, 32, id);
+    tile.addGroup(groupMap);
+}

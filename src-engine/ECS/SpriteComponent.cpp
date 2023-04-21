@@ -33,12 +33,20 @@ void SpriteComponent::draw() {
 void SpriteComponent::setTexture(const std::string& fileName) {
     int w(0), h(0);
     texture_ = TextureManager::loadTexture(fileName, w, h);
+    updateRect_(w, h);
+}
 
+
+void SpriteComponent::setTexture(const std::string& fileName, int w, int h) {
+    texture_ = TextureManager::loadTexture(fileName);
+    updateRect_(w, h);
+}
+
+void SpriteComponent::updateRect_(int w, int h) {
     transform_->w = w;
     transform_->h = h;
-
     srcRect_.w = w;
     srcRect_.h = h;
     dstRect_.w = static_cast<int>(transform_->scale * w);
-    dstRect_.h = static_cast<int>(transform_->scale * h); 
+    dstRect_.h = static_cast<int>(transform_->scale * h);
 }
