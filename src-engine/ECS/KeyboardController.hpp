@@ -5,6 +5,8 @@
 #include "Components.hpp"
 #include "ECS.hpp"
 
+class SpriteComponent;
+
 class KeyboardController : public Component{
 public:
     void init() override;
@@ -12,6 +14,7 @@ public:
 
 private:
     TransformComponent* transform_;
+    SpriteComponent* sprite_;
 };
 
 #endif // KEYBOARD_CONTROLLER_HPP

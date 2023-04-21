@@ -1,10 +1,9 @@
 #include "KeyboardController.hpp"
 
 void KeyboardController::init() {
-    if (!entity->hasComponent<TransformComponent>()){
-        entity->addComponent<TransformComponent>();
-    }
+    entity->addComponent<TransformComponent>();
     transform_ = &entity->getComponent<TransformComponent>();
+    sprite_ = &entity->getComponent<SpriteComponent>();
 }
 
 void KeyboardController::update() {
@@ -13,18 +12,24 @@ void KeyboardController::update() {
         {
         case SDLK_UP:
             transform_->velocity.y = -1;
+            sprite_->play("Walk");
             break;
 
         case SDLK_DOWN:
             transform_->velocity.y = 1;
+            sprite_->play("Walk");
             break;
         
         case SDLK_LEFT:
             transform_->velocity.x = -1;
+            sprite_->play("Walk");
+            sprite_->setFlip(SDL_FLIP_HORIZONTAL);
             break;
         
         case SDLK_RIGHT:
             transform_->velocity.x = 1;
+            sprite_->setFlip(SDL_FLIP_NONE);
+            sprite_->play("Walk");
             break;
         
         default:
@@ -53,6 +58,9 @@ void KeyboardController::update() {
         
         default:
             break;
+        }
+        if (transform_->velocity.x == 0 and transform_->velocity.y == 0){
+            sprite_->play("Idle");
         }
     }
     if (transform_->velocity.x < 0) transform_->velocity.x = -1;

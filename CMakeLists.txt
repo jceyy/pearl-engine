@@ -42,6 +42,7 @@ src-engine/GameObject.cpp
 src-engine/Vector2D.cpp
 src-engine/Collision.cpp
 src-engine/TileMap.cpp
+src-engine/Animation.cpp
 src-engine/ECS/ECS.cpp
 src-engine/ECS/TransformComponent.cpp
 src-engine/ECS/SpriteComponent.cpp

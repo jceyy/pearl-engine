@@ -3,16 +3,7 @@
 #include "Game.hpp"
 
 
-TileMap::TileMap() {
-    // src_.x = src_.y = 0;
-    // src_.w = src_.h = 32;
-    // dst_.x = dst_.y = 0.0f;
-    // dst_.w = dst_.h = tileSize;
-
-    // dirt_ = TextureManager::loadTexture("assets/dirt.png");
-    // grass_ = TextureManager::loadTexture("assets/grass.png");
-    // water_ = TextureManager::loadTexture("assets/water.png");
-}
+TileMap::TileMap() {}
 
 TileMap::~TileMap() {}
 

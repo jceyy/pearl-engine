@@ -1,9 +1,35 @@
 #include "SpriteComponent.hpp"
 #include "../TextureManager.hpp"
 
-SpriteComponent::SpriteComponent() : transform_(nullptr), texture_(nullptr),
-srcRect_({0, 0, 0, 0}), dstRect_({0.0f, 0.0f, 0, 0}){
+SpriteComponent::SpriteComponent() {
+    transform_ = nullptr;
+    texture_ = nullptr;
+    srcRect_ = {0, 0, 0, 0};
+    dstRect_ = {0.0f, 0.0f, 0, 0};
+    animated_ = false;
+    animIndex_ = 0;
+    animFrames_ = 0;
+    animFPS_ = 0;
+    spriteFlip_ = SDL_FLIP_NONE;
 }
+
+SpriteComponent::SpriteComponent(bool animated){
+    SpriteComponent();
+    // transform_ = nullptr;
+    // texture_ = nullptr;
+    // srcRect_ = {0, 0, 0, 0};
+    // dstRect_ = {0.0f, 0.0f, 0, 0};
+    // animIndex_ = 0;
+    // animated_ = animated;
+    // animFrames_ = 0;
+    // animFPS_ = 0;
+    Animation idle = Animation(0, 3, 6);
+    Animation walk = Animation(1, 8, 16);
+    animations_.emplace("Idle", idle);
+    animations_.emplace("Walk", walk);
+    play("Idle");  // By default
+}
+
 
 SpriteComponent::~SpriteComponent() {
     SDL_DestroyTexture(texture_);
@@ -20,14 +46,20 @@ void SpriteComponent::init() {
 }
 
 void SpriteComponent::update() {
+    if (animated_) {
+        srcRect_.x = srcRect_.w * static_cast<int>((SDL_GetTicks() * animFPS_ / 1000)
+        % animFrames_);
+    }
+    srcRect_.y = animIndex_ * transform_->h;
+
     dstRect_.x = transform_->position.x;
     dstRect_.y = transform_->position.y;
-    dstRect_.w = transform_->w * transform_->scale;
-    dstRect_.h = transform_->h * transform_->scale;
+    dstRect_.w = static_cast<int>(transform_->w * transform_->scale);
+    dstRect_.h = static_cast<int>(transform_->h * transform_->scale);
 }
 
 void SpriteComponent::draw() {
-    TextureManager::Draw(texture_, &srcRect_, &dstRect_);
+    TextureManager::Draw(texture_, &srcRect_, &dstRect_, spriteFlip_);
 }
 
 void SpriteComponent::setTexture(const std::string& fileName) {
@@ -41,6 +73,22 @@ void SpriteComponent::setTexture(const std::string& fileName, int w, int h) {
     texture_ = TextureManager::loadTexture(fileName);
     updateRect_(w, h);
 }
+
+void SpriteComponent::play(const std::string& animName){
+    animFrames_ = animations_[animName].frames;
+    animIndex_ = animations_[animName].index;
+    animFPS_ = animations_[animName].fps;
+}
+
+void SpriteComponent::setFlip(SDL_RendererFlip flip){
+    spriteFlip_ = flip;
+}
+
+SDL_RendererFlip SpriteComponent::getFlip() const{
+    return spriteFlip_;
+}
+
+
 
 void SpriteComponent::updateRect_(int w, int h) {
     transform_->w = w;

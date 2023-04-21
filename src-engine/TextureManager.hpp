@@ -12,7 +12,7 @@ public:
 
     static SDL_Texture* loadTexture(const std::string& fileName);
     static SDL_Texture* loadTexture(const std::string& fileName, int& w, int& h);
-    static void Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst);
+    static void Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip);
 };
 
 

@@ -63,22 +63,22 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         // Load objects
         TileMap::loadMap("assets/map16x16.map", 16, 16);
 
-        player.addComponent<TransformComponent>(-4, -14, .125);
-        player.addComponent<SpriteComponent>();
-        player.getComponent<SpriteComponent>().setTexture("assets/parachute.png");
+        player.addComponent<TransformComponent>(-4, -14, 2);
+        player.addComponent<SpriteComponent>(true);
+        // player.getComponent<SpriteComponent>().setTexture("assets/parachute.png");
+        player.getComponent<SpriteComponent>().setTexture("assets/player_anims.png", 32, 32);
         player.addComponent<KeyboardController>();
         player.addComponent<ColliderComponent>("player");
         player.addGroup(groupPlayers);
 
-        wall.addComponent<TransformComponent>(300, 200, 200, 200, 1.0f);
+        // wall.addComponent<TransformComponent>(300, 200, 200, 200, .25f);
         // wall.addComponent<ColliderComponent>("camera");
-        wall.addComponent<SpriteComponent>();
-        wall.getComponent<SpriteComponent>().setTexture("assets/camera.png");
-        wall.addGroup(groupMap);
+        // wall.addComponent<SpriteComponent>();
+        // wall.getComponent<SpriteComponent>().setTexture("assets/camera.png");
+        // wall.addGroup(groupMap);
         
         manager.refresh();
         manager.update();
-
     }
     else{
         isRunning_ = false;
