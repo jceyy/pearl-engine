@@ -12,18 +12,27 @@ class SpriteComponent;
 class TileComponent : public Component{
 public:
     TileComponent();
-    TileComponent(PosType x, PosType y, int w, int h, int id);
+    TileComponent(int srcX, int srcY, PosType x, PosType y, int tileSize, float mapScale, const std::string& fileName);
+    ~TileComponent();
 
     void init() override;
+    void update() override;
+    void draw() override;
 
+
+    SDL_FRect dstRect_;
+    Vector2D position;
 
 private:
-    TransformComponent* transform_;
-    SpriteComponent* sprite_;
-    SDL_Rect tileRect_;
+    // TransformComponent* transform_;
+    // SpriteComponent* sprite_;
+    // SDL_Rect tileRect_;
+    // std::string fileName_;
+    // int tileID_;
+    
+    SDL_Texture* texture_;
+    SDL_Rect srcRect_;
     std::string fileName_;
-    int tileID_;
-
 };
 
 

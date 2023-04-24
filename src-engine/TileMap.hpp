@@ -3,15 +3,23 @@
 #include <string>
 // #include <vector>
 // #include <SDL2/SDL.h>
+#include <string>
 
 class TileMap{
 public:
     TileMap();
+    TileMap(const std::string& fileName, int tileSize, float mapScale);
     ~TileMap();
 
-    static void loadMap(const std::string& fileName, int sizeX, int SizeY);
+    void addTile(int srcX, int srcY, PosType x, PosType y);
+    void loadMap(const std::string& fileName, int sizeX, int SizeY);
 
 private:
+    const std::string fileName_;
+    float mapScale_;
+    int tileSize_;
+    float scaledSize_;
+
     // SDL_Rect src_;
     // SDL_FRect dst_;
     // SDL_Texture* dirt_;

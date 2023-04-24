@@ -1,45 +1,43 @@
 #include "TileComponent.hpp"
 #include "TransformComponent.hpp"
 #include "SpriteComponent.hpp"
+#include "../TextureManager.hpp"
 
-TileComponent::TileComponent() :
-transform_(nullptr), sprite_(nullptr), tileRect_({0, 0, 0, 0}), tileID_(0),
-fileName_("") {
+TileComponent::TileComponent() {
+    texture_ = nullptr;
+}
+
+TileComponent::TileComponent(int srcX, int srcY, PosType x, PosType y, int tileSize, float mapScale, const std::string& fileName){
+    texture_ = nullptr;
+
+    position.x = x;
+    position.y = y;
+    fileName_ = fileName;
+    srcRect_.x = srcX;
+    srcRect_.y = srcY;
+    srcRect_.w = srcRect_.h = tileSize;
+
+    dstRect_.x = x;
+    dstRect_.y = y;
+    dstRect_.w = dstRect_.h = static_cast<int> (tileSize * mapScale);
 }
 
 
-TileComponent::TileComponent(PosType x, PosType y, int w, int h, int id) :
-transform_(nullptr), sprite_(nullptr) {
-    tileRect_.x = x;
-    tileRect_.y = y;
-    tileRect_.w = w;
-    tileRect_.h = h;
-    tileID_ = id;
-
-    switch (tileID_){    
-    case 0:
-        fileName_ = "assets/dirt.png";
-        break;
-
-    case 1:
-        fileName_ = "assets/grass.png";
-        break;
-
-    case 2:
-        fileName_ = "assets/water.png";
-        break;
-
-    default:
-        std::cout << "Unknown tile type" << std::endl;
-        break;
-    }
+TileComponent::~TileComponent() {
+    SDL_DestroyTexture(texture_);
 }
+
+void TileComponent::update(){
+    dstRect_.x = position.x - Game::camera.x;
+    dstRect_.y = position.y - Game::camera.y;
+}
+
 
 void TileComponent::init(){
-    entity->addComponent<TransformComponent>(tileRect_.x, tileRect_.y, 1);
-    entity->addComponent<SpriteComponent>();
+    if (texture_ != nullptr) SDL_DestroyTexture(texture_);
+    texture_ = TextureManager::loadTexture(fileName_);
+}
 
-    transform_ = &entity->getComponent<TransformComponent>();
-    sprite_ = &entity->getComponent<SpriteComponent>();
-    sprite_->setTexture(fileName_, tileRect_.w, tileRect_.h);
+void TileComponent::draw(){
+    TextureManager::Draw(texture_, &srcRect_, &dstRect_, SDL_FLIP_NONE);
 }

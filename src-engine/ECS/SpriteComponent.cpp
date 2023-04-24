@@ -52,8 +52,8 @@ void SpriteComponent::update() {
     }
     srcRect_.y = animIndex_ * transform_->h;
 
-    dstRect_.x = transform_->position.x;
-    dstRect_.y = transform_->position.y;
+    dstRect_.x = transform_->position.x - Game::camera.x;
+    dstRect_.y = transform_->position.y - Game::camera.y;
     dstRect_.w = static_cast<int>(transform_->w * transform_->scale);
     dstRect_.h = static_cast<int>(transform_->h * transform_->scale);
 }

@@ -11,15 +11,20 @@ class ColliderComponent : public Component {
 public:
     ColliderComponent();
     ColliderComponent(const std::string& tag);
+    ColliderComponent(const std::string& tag, PosType x, PosType y, int size);
 
     void init() override;
     void update() override;
+    void draw() override;
     
     PRL_Rect collider;
     std::string tag;
     TransformComponent* transform;
 
 private:
+    SDL_Texture* texture_;
+    SDL_FRect dstRect_;
+    SDL_Rect srcRect_;
 };
 
 
