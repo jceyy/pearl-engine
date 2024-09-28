@@ -28,15 +28,15 @@ private:
 
 template <typename T> class FadingGroup : public FadingGroupBase {
 public:
-    FadingGroup(T* data, float init, float final, Uint64 duration_us, Uint64 init_time) :
+    FadingGroup(const T* data, float init, float final, Uint64 duration_us, Uint64 init_time) :
     FadingGroupBase(init, final, duration_us, init_time),
     variable_(data) {
-        static_assert(std::is_arithmetic<T>::value, "Type is ot an arithmetic type");
+        static_assert(std::is_arithmetic<T>::value, "Type is not of an arithmetic type");
     }
     ~FadingGroup() {};
 
 private:
-    T* variable_;
+    const   T* variable_;
     
     // performs no checks as a design choice for efficiency. Checks done in FadeComponent
     inline void update_(Uint64 currentTime_us) override {
@@ -52,9 +52,18 @@ public:
     ~FadeComponent();
 
     void update() override;
-    template <typename T> inline void fade(T* variable, float init, float final, Uint64 duration_us) {
+    template <typename T> inline void fade(const T* variable, float init, float final, Uint64 duration_us) {
         fadingGroup_.push_back(new FadingGroup<T>(variable, init, final, duration_us));
     };
+
+    template <typename T> inline void stopFade(const T* var) {
+        for (size_t n(0); n < fadingGroup_.size(); ++n) {
+            if (static_cast<FadingGroup<T>*>(fadingGroup_[n])->variable_ == var) {
+                fadingGroup_.erase(fadingGroup_.begin() + n);
+                return;
+            }
+        }
+    }
 
 private:
     std::vector<FadingGroupBase*> fadingGroup_;
