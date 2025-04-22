@@ -13,8 +13,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
   # Set compile flags
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic -std=c++11") # -fsanitize=address
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -pedantic -std=c++14") # -fsanitize=address
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++14 -O3 -DNDEBUG")
 
   # Test for build type
   if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES debug)
@@ -38,13 +38,27 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(CMAKE_C_COMPILER /usr/bin/gcc)
   set(CMAKE_CXX_COMPILER /usr/bin/g++)
 
-  # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
   set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
 
-  # Set up SDL2-related packages
-  find_package(SDL2 REQUIRED)
-  find_package(SDL2_image REQUIRED)
-  find_package(SDL2_ttf REQUIRED)
+  if (WIN32)
+    set(SDL2_DIR "D:/SDL2/cmake")
+    set(SDL2_image_DIR "D:/SDL2/cmake")
+    set(SDL2_ttf_DIR "D:/SDL2/cmake")
+    set(GTest_DIR "D:/googletest-1.16.0/googletest/cmake")
+    set(CMAKE_C_COMPILER "C:/MinGW/mingw64/bin/gcc.exe")
+    set(CMAKE_CXX_COMPILER "C:/MinGW/mingw64/bin/g++.exe")
+    set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES "C:/MinGW/mingw64/lib/gcc/x86_64-w64-mingw32/14.2.0/include")
+
+    # Set up SDL2-related packages
+    find_package(SDL2 REQUIRED CONFIG)
+    find_package(SDL2_image REQUIRED CONFIG)
+    find_package(SDL2_ttf REQUIRED CONFIG)
+  else()
+    # Set up SDL2-related packages
+    find_package(SDL2 REQUIRED)
+    find_package(SDL2_image REQUIRED CFIG)
+    find_package(SDL2_ttf REQUIRED)
+  endif()
 
   include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
   # target_include_directories(include PRIVATE "{CMAKE_CURRENT_SOURCE_DIR}")  
@@ -59,7 +73,15 @@ add_subdirectory(apps)
 # Build tests only if required
 if(BUILD_TESTING)
   enable_testing()
-  find_package(GTest REQUIRED)
+  if (WIN32)
+    find_package(GTest REQUIRED CONFIG)
+    # Create alias target
+    add_library(GTest::GTest INTERFACE IMPORTED)
+    add_library(GTest::gtest_main INTERFACE IMPORTED)
+  else()
+    find_package(GTest REQUIRED)
+  endif()
+
   # include(FetchContent)
   # FetchContent_Declare(
   #   googletest
