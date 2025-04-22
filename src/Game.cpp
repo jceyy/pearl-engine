@@ -6,6 +6,7 @@
 #include "Types.hpp"
 #include "Collision.hpp"
 #include "TileMap.hpp"
+#include "Logging.hpp"
 
 
 /** 
@@ -21,6 +22,8 @@
  * - Have removeGroup also remove the entity from the grouped entities
  * - Automatically remove inactive entities from grouped entities
 **/
+
+using namespace PRL;
 
 EntityManager manager;
 SDL_Event Game::event;
@@ -41,35 +44,39 @@ Game::~Game() {}
 void Game::init(const std::string& title, int xpos, int ypos, int width, int height, bool fullscreen) {
     
     int windowFlags = 0;
-    if(SDL_Init(SDL_INIT_EVERYTHING) == 0){
-        std::cout << "SDL subsystems initialized" << std::endl;
+    if(SDL_Init(SDL_INIT_EVERYTHING) == 0) {
+        PRL::Logging::log("SDL subsystems initialized", "PRL::Game::init()");
         if (fullscreen){
             windowFlags = SDL_WINDOW_FULLSCREEN;
         }
         window_ = SDL_CreateWindow(title.c_str(), xpos, ypos, width, height, windowFlags);
         if (window_){
-            std::cout << "Window created" << std::endl;
+            PRL::Logging::log("Window created", "PRL::Game::init()");
         }
         else{
-            std::cerr << "Unable to create window" << std::endl;
+            PRL::Logging::err("Unable to create window : " + std::string(SDL_GetError()), "PRL::Game::init()");
         }
-
-        renderer = SDL_CreateRenderer(window_, -1, 0);
+        // SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+        // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+        renderer = SDL_CreateRenderer(window_, -1, 0 | SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         if (renderer){
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            std::cout << "Renderer created" << std::endl;
+            SDL_SetRenderDrawColor(renderer, 236, 236, 236, 255);
+            SDL_RendererInfo info;
+            SDL_GetRendererInfo(renderer, &info);
+            PRL::Logging::log("Renderer created with driver : " + std::string(info.name), "PRL::Game::init()");
         }
         else{
-            std::cerr << "Unable to create renderer" << std::endl;
+            PRL::Logging::err("Unable to create renderer : " + std::string(SDL_GetError()), "PRL::Game::init()");
         }
 
         if (TTF_Init() == -1){
-            std::cerr << "Unable to initialize SDL_TTF" << std::endl;
+            PRL::Logging::err("Unable to initialize SDL_TTF : " + std::string(SDL_GetError()), "PRL::Game::init()");
         }
         isRunning = true;
 
         // Load objects
         assetManager->addTexture("terrain", "assets/terrain_ss.png");
+        assetManager->addTexture("terrain3", "assets/terrain3.png");
         assetManager->addTexture("player", "assets/player_anims.png");
         assetManager->addTexture("projectile", "assets/proj.png");
         assetManager->addTexture("circle", "assets/circle.png");
@@ -77,14 +84,16 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
 
         // assetManager->createProjectile(Vector2D(500, 500), Vector2D(2, 0), 500, 2, "projectile");
 
-        tileMap = new TileMap("terrain", 32, 2);
-        tileMap->loadMap("assets/map.map", 25, 20);
+        // tileMap = new TileMap("terrain", 2);
+        // tileMap->loadMap("assets/map2.map", 10);
+        tileMap = new TileMap("terrain3", 2);
+        tileMap->loadMap("assets/map3.map", 10);
 
         player.addComponent<TransformComponent>(400, 320, 3);
         player.addComponent<SpriteComponent>("", true);
         player.getComponent<SpriteComponent>().setTexture("player", 32, 32);
         player.addComponent<KeyboardController>();
-        player.addComponent<ColliderComponent>("player");
+        // player.addComponent<ColliderComponent>("player");
         player.addGroup(groupPlayers);
 
         ball1.addComponent<TransformComponent>(600, 400, 1);
@@ -154,7 +163,7 @@ void Game::render() {
 
 void Game::update() {
     current_time_us_ = static_cast<Uint64>(SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency());
-    SDL_FRect playerCol = player.getComponent<ColliderComponent>().collider;
+    // SDL_FRect playerCol = player.getComponent<ColliderComponent>().collider;
     Vector2D playerPos = player.getComponent<TransformComponent>().position;
     
     std::stringstream ss;
@@ -164,19 +173,19 @@ void Game::update() {
     manager.refresh();
     manager.update();
 
-    for (auto& c : colliders) {
-        SDL_FRect cCol = c->getComponent<ColliderComponent>().collider;
-        if (Collision::AABB(cCol, playerCol)){
-            player.getComponent<TransformComponent>().position = playerPos;
-        }
-    }
+    // for (auto& c : colliders) {
+    //     SDL_FRect cCol = c->getComponent<ColliderComponent>().collider;
+    //     if (Collision::AABB(cCol, playerCol)){
+    //         player.getComponent<TransformComponent>().position = playerPos;
+    //     }
+    // }
 
-    for (auto& p : projectiles) {
-        if (Collision::AABB(player.getComponent<ColliderComponent>().collider,
-            p->getComponent<ColliderComponent>().collider)) {
-                p->destroy();
-            }
-    }
+    // for (auto& p : projectiles) {
+    //     if (Collision::AABB(player.getComponent<ColliderComponent>().collider,
+    //         p->getComponent<ColliderComponent>().collider)) {
+    //             p->destroy();
+    //         }
+    // }
     
     camera.x = player.getComponent<TransformComponent>().position.x-400;
     camera.y = player.getComponent<TransformComponent>().position.y-320;
@@ -192,7 +201,8 @@ void Game::clean() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window_);
     SDL_Quit();
-    std::cout << "Game cleaned" << std::endl;
+    PRL::Logging::log("Game cleaned", "PRL::Game::clean()");
+    SDL_Delay(1000); // Temporary delay for logging visibility
 }
 
 Uint64 Game::current_time_us_ = 0;

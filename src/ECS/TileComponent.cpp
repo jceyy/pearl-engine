@@ -7,7 +7,7 @@ TileComponent::TileComponent() {
     texture_ = nullptr;
 }
 
-TileComponent::TileComponent(int srcX, int srcY, PosType x, PosType y, int tileSize, float mapScale, const std::string& texID){
+TileComponent::TileComponent(int srcX, int srcY, PosType x, PosType y, int tileSize, float mapScale, const std::string& texID) {
     texture_ = nullptr;
 
     position.x = x;
@@ -28,8 +28,8 @@ TileComponent::~TileComponent() {
 }
 
 void TileComponent::update(){
-    dstRect_.x = position.x - Game::camera.x;
-    dstRect_.y = position.y - Game::camera.y;
+    dstRect_.x = static_cast<PosType>(position.x - Game::camera.x);
+    dstRect_.y = static_cast<PosType>(position.y - Game::camera.y);
 }
 
 

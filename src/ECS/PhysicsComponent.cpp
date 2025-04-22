@@ -27,7 +27,7 @@ void PhysicsComponent::computeAcceleration_() {
 void PhysicsComponent::init() {
     // Requirements
     entity->addComponent<TransformComponent>();
-    entity->addComponent<ColliderComponent>();
+    // entity->addComponent<ColliderComponent>();
     entity->addComponent<SpriteComponent>();
 
     transform_ = &entity->getComponent<TransformComponent>();

@@ -1,40 +1,42 @@
 #include "ECS/ColliderComponent.hpp"
 #include "TextureManager.hpp"
 
-ColliderComponent::ColliderComponent() {
-    
+// ColliderComponent::ColliderComponent() : 
+//     isTrigger_(false), tag_(""), shape_(nullptr), transform_(nullptr) {}
+
+ColliderComponent::ColliderComponent(const std::string& tag, const ColliderShape& shape, bool isTrigger) : 
+    isTrigger_(isTrigger), tag_(tag), transform_(nullptr) {
+    if (const AABBCollider* aabb = dynamic_cast<const AABBCollider*>(&shape)) {
+        shape_ = static_cast<ColliderShape*>(new AABBCollider(aabb->getAABB()));
+    }
+    else if (const CircleCollider* circle = dynamic_cast<const CircleCollider*>(&shape)) {
+        shape_ = static_cast<ColliderShape*>(new CircleCollider(circle->getCircle()));
+    }
+    else {
+        throw std::runtime_error("Unknown collider shape type");
+    }
 }
 
-ColliderComponent::ColliderComponent(const std::string& t) : tag(t) {
+ColliderComponent::~ColliderComponent() {
+    if (shape_ != nullptr) {
+        delete shape_;
+    }
 }
-
-ColliderComponent::ColliderComponent(const std::string& t, PosType x, PosType y, int size) : tag(t) {
-    collider.x = x;
-    collider.y = y;
-    collider.h = collider.w = size;
-}
-
 
 void ColliderComponent::init() {
     entity->addComponent<TransformComponent>();
-    transform = &entity->getComponent<TransformComponent>();
-
-    texture_ = TextureManager::loadTexture("assets/ColTex.png");
-    srcRect_ = {0, 0, 32, 32};
-    dstRect_ = {collider.x, collider.y, collider.w, collider.h};
+    transform_ = &entity->getComponent<TransformComponent>();
 }
 
 void ColliderComponent::update() {
-    if (tag != "terrain"){
-        collider.x = transform->position.x;
-        collider.y = transform->position.y;
-        collider.w = static_cast<int>(transform->w * transform->scale);
-        collider.h = static_cast<int>(transform->h * transform->scale);
-    }
-    dstRect_.x = collider.x - Game::camera.x;
-    dstRect_.y = collider.y - Game::camera.y;
+    // if (tag_ != "terrain"){
+    //     collider.x = transform->position.x;
+    //     collider.y = transform->position.y;
+    //     collider.w = static_cast<int>(transform->w * transform->scale);
+    //     collider.h = static_cast<int>(transform->h * transform->scale);
+    // }
+    // dstRect_.x = collider.x - Game::camera.x;
+    // dstRect_.y = collider.y - Game::camera.y;
 }
 
-void ColliderComponent::draw() {
-    TextureManager::Draw(texture_, &srcRect_, &dstRect_, SDL_FLIP_NONE);
-}
+void ColliderComponent::draw() {}

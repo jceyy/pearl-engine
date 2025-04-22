@@ -99,7 +99,7 @@ bool Collision::LineAABB(const PRL_Line& line, const PRL_Rect& rec) {
     else return false;
 }
 
-bool Collision::AABB(const PRL_Rect& A, const PRL_Rect& B) {
+bool Collision::AABBvsAABB(const PRL_Rect& A, const PRL_Rect& B) {
     if (A.x + A.w >= B.x && B.x + B.w >= A.x &&
         A.y + A.h >= B.y && B.y + B.h >= A.y) {
         return true;
@@ -107,7 +107,7 @@ bool Collision::AABB(const PRL_Rect& A, const PRL_Rect& B) {
     else return false;
 }
 
-bool Collision::AABBCircle(const PRL_Rect& rec, const PRL_Circle& cir) {
+bool Collision::AABBvsCircle(const PRL_Rect& rec, const PRL_Circle& cir) {
     // Vertical part
     if (ValueInRange(cir.y_ - cir.r_, rec.y, rec.y + rec.h) ||
         ValueInRange(cir.y_ + cir.r_, rec.y, rec.y + rec.h) ||
@@ -125,7 +125,7 @@ bool Collision::AABBCircle(const PRL_Rect& rec, const PRL_Circle& cir) {
     else return false;
 }
 
-bool Collision::Circle(const PRL_Circle& cirA, const PRL_Circle& cirB) {
+bool Collision::CirclevsCircle(const PRL_Circle& cirA, const PRL_Circle& cirB) {
     float deltaX = cirB.x_ - cirA.x_;
     float deltaY = cirB.y_ - cirA.y_;
     if ((deltaX * deltaX + deltaY * deltaY) < ((cirA.r_ + cirB.r_) * (cirA.r_ + cirB.r_))) {
@@ -163,7 +163,7 @@ bool Collision::Polygon(const PRL_Polygon& polyA, const PRL_Polygon& polyB){
     // Project the vertices of polygon A onto the axes
     for (size_t i = 0; i < axes.size(); i++) {
         Vector2D axis = axes[i];
-        float minA = INFINITY, maxA = -INFINITY;
+        float minA = INFINITY_F, maxA = -INFINITY_F;
         for (size_t j = 0; j < verticesA.size(); j++) {
             float projection = verticesA[j].dotProduct(axis);
             if (projection < minA) minA = projection;
@@ -171,7 +171,7 @@ bool Collision::Polygon(const PRL_Polygon& polyA, const PRL_Polygon& polyB){
         }
 
         // Project the vertices of polygon B onto the axes
-        float minB = INFINITY, maxB = -INFINITY;
+        float minB = INFINITY_F, maxB = -INFINITY_F;
         for (size_t j = 0; j < verticesB.size(); j++) {
             float projection = verticesB[j].dotProduct(axis);
             if (projection < minB) minB = projection;
@@ -187,20 +187,64 @@ bool Collision::Polygon(const PRL_Polygon& polyA, const PRL_Polygon& polyB){
 }
 
 
+// bool Collision::AABB(const ColliderComponent& A, const ColliderComponent& B){
+//     if (AABB(A.collider, B.collider)){
+//         // std::cout << A.tag << " hit " << B.tag << std::endl;
+//         return true;
+//     }
+//     else return false;
+// }
 
 
+// =======================================================================
+// ============================ AABBCollider =============================
+// =======================================================================
+AABBCollider::AABBCollider(const PRL_Rect& aabb) {
+    aabb_ = aabb;
+    type_ = ColliderShapeType::AABB;
+}
 
+bool AABBCollider::checkCollision(const ColliderShape& other) const {
+    switch (other.getType()) {
+        case ColliderShapeType::AABB:
+            return Collision::AABBvsAABB(aabb_, other.getAABB());
 
-
-
-
-
-
-
-bool Collision::AABB(const ColliderComponent& A, const ColliderComponent& B){
-    if (AABB(A.collider, B.collider)){
-        // std::cout << A.tag << " hit " << B.tag << std::endl;
-        return true;
+        case ColliderShapeType::Circle:
+            if (Collision::AABBvsAABB(aabb_, other.getAABB()))
+                return Collision::AABBvsCircle(aabb_, reinterpret_cast<const CircleCollider&>(other).getCircle());
+            return false;
+        
+        default:
+            return false;
     }
-    else return false;
+}
+
+
+// =======================================================================
+// ============================ CircleCollider ===========================
+// =======================================================================
+CircleCollider::CircleCollider(const PRL_Circle& circle) : circle_(circle) {
+    throw std::runtime_error("CircleCollider not implemented");
+}
+
+bool CircleCollider::checkCollision(const ColliderShape& other) const {
+    switch (other.getType()) {
+        case ColliderShapeType::AABB:
+            return Collision::AABBvsCircle(other.getAABB(), circle_);
+
+        case ColliderShapeType::Circle:
+            if (Collision::AABBvsAABB(other.getAABB(), aabb_))
+                return Collision::CirclevsCircle(circle_, reinterpret_cast<const CircleCollider&>(other).getCircle());
+            return false;
+
+        default:
+            return false;
+    }
+}
+
+void CircleCollider::computeAABB_() {
+    aabb_.x = circle_.x() - circle_.r();
+    aabb_.y = circle_.y() - circle_.r();
+    aabb_.w = 2.0f * circle_.r();
+    aabb_.h = aabb_.w;
 }

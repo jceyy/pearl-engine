@@ -21,6 +21,7 @@
 #include "Game.hpp"
 #include "GameObject.hpp"
 #include "Geometry.hpp"
+#include "Logging.hpp"
 #include "PhysicsManager.hpp"
 #include "TextureManager.hpp"
 #include "TileMap.hpp"

@@ -20,7 +20,7 @@ private:
     Uint64 init_time_;
     float coefficient_;
 
-    virtual void update_(Uint64 currentTime_us) {}
+    virtual void update_(Uint64 currentTime_us) {currentTime_us+=1;}
     virtual void setFinal_() {}
 
     friend class FadeComponent;

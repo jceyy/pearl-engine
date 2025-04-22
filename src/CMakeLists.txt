@@ -44,6 +44,7 @@ target_sources(prl_library
     GameObject.cpp
     Vector2D.cpp
     Collision.cpp
+    Logging.cpp
     TileMap.cpp
     Animation.cpp
     AssetManager.cpp
@@ -65,8 +66,21 @@ target_sources(prl_library
 )
 
 # Allow to include files relative to the root of the project
-target_include_directories(prl_library
-  PUBLIC
-  ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/include/PRL
-)
+if (WIN32)
+  target_include_directories(prl_library
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/PRL
+    PRIVATE
+    SDL2::SDL2
+    SDL2::SDL2main
+    SDL2_image::SDL2_image
+    SDL2_ttf::SDL2_ttf
+  )
+else()
+  target_include_directories(prl_library
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/PRL
+  )
+endif()
