@@ -1,27 +1,34 @@
+#include <cmath>
 #include "TextureManager.hpp"
 #include "Game.hpp"
+#include "Logging.hpp"
+
+using namespace PRL;
 
 SDL_Texture* TextureManager::loadTexture(const std::string& fileName){
     int w(0), h(0);
     return loadTexture(fileName, w, h);
 }
 
-
 SDL_Texture* TextureManager::loadTexture(const std::string& fileName, int& w, int& h){
     SDL_Surface* tempSurface = IMG_Load(fileName.c_str());
-    if (!tempSurface) std::cerr << "Error loading image" << std::endl;
+    if (!tempSurface) 
+        Logging::err("Error loading image : " + std::string(IMG_GetError()), "TextureManager::loadTexture");
     w = tempSurface->w;
     h = tempSurface->h;
     SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::renderer, tempSurface);
     
-    if (!texture) std::cerr << "Error creating texture" << std::endl;
+    if (!texture)
+        Logging::err("Error creating texture", "TextureManager::loadTexture");
 
     SDL_FreeSurface(tempSurface);
     return texture;
 }
 
+SDL_FRect TextureManager::dst_floored_ = {0, 0, 0, 0};
 void TextureManager::Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip) {
-    SDL_RenderCopyExF(Game::renderer, texture, src, dst, 0, nullptr, flip);
+    dst_floored_ = {floorf(dst->x + 0.001f), floorf(dst->y + 0.001f), dst->w, dst->h}; 
+    SDL_RenderCopyExF(Game::renderer, texture, src, &dst_floored_, 0, nullptr, flip);
 }
 
 inline void setPixel(SDL_Surface* surface, SDL_Color* color, int x, int y) {
@@ -32,8 +39,17 @@ inline void setPixel(SDL_Surface* surface, SDL_Color* color, int x, int y) {
 }
 
 SDL_Texture* TextureManager::generateCircle(int radius, SDL_Color* color) {
+    if (color == nullptr) {
+        Logging::err("Null color pointer passed to TextureManager::generateCircle", "TextureManager::generateCircle");
+        return nullptr;
+    }
 
     SDL_Surface* surface = SDL_CreateRGBSurface(0, 2 * radius, 2 * radius, 32, 0, 0, 0, 0);
+    if (surface == nullptr) {
+        Logging::err("Error creating surface : " + std::string(SDL_GetError()), "TextureManager::generateCircle");
+        return nullptr;
+    }
+
     int x0(radius), y0(radius); 
     int x = radius-1;
     int y = 0;

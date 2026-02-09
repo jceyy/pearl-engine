@@ -15,6 +15,9 @@ public:
     static void Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip);
 
     static SDL_Texture* generateCircle(int radius, SDL_Color* color);
+
+private:
+    static SDL_FRect dst_floored_;
 };
 
 
