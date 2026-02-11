@@ -5,6 +5,9 @@ RenderSystem::RenderSystem() {
     signature_.set(getComponentTypeID<SpriteComponent>());
 }
 
+void RenderSystem::update() {
+    return;
+}
 
 void RenderSystem::draw() {
     SDL_FRect dst;

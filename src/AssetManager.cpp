@@ -17,7 +17,7 @@ void AssetManager::addTexture(const std::string& id, const std::string& fileName
 void AssetManager::createProjectile(Vector2D pos, Vector2D vel, float range, float speed, const std::string& textureID){
     auto& projectile(entityManager_->addEntity());
     projectile.addComponent<TransformComponent>(pos.x, pos.y, 32, 32, 1);
-    projectile.addComponent<SpriteComponent>(textureID, false);
+    projectile.addComponent<SpriteComponent>(textureID);
     projectile.addComponent<ProjectileComponent>(range, speed, vel);
     // projectile.addComponent<ColliderComponent>("projectile");
     projectile.addGroup(Game::groupProjectiles); 

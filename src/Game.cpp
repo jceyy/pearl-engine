@@ -7,7 +7,8 @@
 #include "Collision.hpp"
 #include "TileMap.hpp"
 #include "Logging.hpp"
-
+#include "Systems/RenderSystem.hpp"
+#include "Systems/AnimationSystem.hpp"
 
 /** 
  * Upcoming upgrades :
@@ -18,29 +19,34 @@
  * - Error management
  * - Custom collider per frame
  * - Create UI containers
- * - Menus as a "level" and have a scene manager to switch levels
+ * - Menus as a "level" and have a scene entityManager to switch levels
  * - Have removeGroup also remove the entity from the grouped entities
  * - Automatically remove inactive entities from grouped entities
 **/
 
 using namespace PRL;
 
-EntityManager manager;
+EntityManager entityManager;
 SDL_Event Game::event;
 TileMap* tileMap;
-auto& player(manager.addEntity());
-auto& label(manager.addEntity());
-auto& ball1(manager.addEntity());
+auto& player(entityManager.addEntity());
+auto& label(entityManager.addEntity());
+auto& ball1(entityManager.addEntity());
 
 SDL_Renderer* Game::renderer = nullptr;
 bool Game::isRunning = false;
 SDL_FRect Game::camera = {0, 0, 800, 640};
-AssetManager* Game::assetManager = new AssetManager(&manager);
+AssetManager* Game::assetManager = new AssetManager(&entityManager);
+SystemManager* Game::systemManager = new SystemManager();
 
-Game::Game() {}
+size_t Game::instanceCount_ = 0;
+Game::Game() {
+    instanceCount_++;
+}
 
-Game::~Game() {}
-
+Game::~Game() {
+    instanceCount_--;
+}
 void Game::init(const std::string& title, int xpos, int ypos, int width, int height, bool fullscreen) {
     
     int windowFlags = 0;
@@ -90,33 +96,36 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         tileMap->loadMap("assets/map3.map", 10);
 
         player.addComponent<TransformComponent>(400, 320, 3);
-        player.addComponent<SpriteComponent>("", true);
-        player.getComponent<SpriteComponent>().setTexture("player", 32, 32);
+        player.addComponent<SpriteComponent>("");
+        // player.getComponent<SpriteComponent>().setTexture("player", 32, 32);
         player.addComponent<KeyboardController>();
         // player.addComponent<ColliderComponent>("player");
         player.addGroup(groupPlayers);
 
         ball1.addComponent<TransformComponent>(600, 400, 1);
-        ball1.addComponent<SpriteComponent>("test", false);
-        ball1.getComponent<SpriteComponent>().setTexture("circle", 16, 16);
+        ball1.addComponent<SpriteComponent>("test");
+        // ball1.getComponent<SpriteComponent>().setTexture("circle", 16, 16);
         ball1.addComponent<PhysicsComponent>();
         ball1.addGroup(groupPlayers);
 
         SDL_Color colorWhite = {255, 255, 255, 255};
         label.addComponent<UILabel>(10, 10, "Test String", "baseFont", colorWhite);
         
-        manager.refresh();
-        manager.update();
+        entityManager.refresh();
+        entityManager.update();
+
+        systemManager->registerSystem<RenderSystem>();
+
     }
     else{
         isRunning = false;
     }
 }
 
-auto& tiles(manager.getGroup(Game::groupMap));
-auto& colliders(manager.getGroup(Game::groupColliders));
-auto& players(manager.getGroup(Game::groupPlayers));
-auto& projectiles(manager.getGroup(Game::groupProjectiles));
+auto& tiles(entityManager.getGroup(Game::groupMap));
+auto& colliders(entityManager.getGroup(Game::groupColliders));
+auto& players(entityManager.getGroup(Game::groupPlayers));
+auto& projectiles(entityManager.getGroup(Game::groupProjectiles));
 
 
 void Game::handleEvents() {
@@ -156,7 +165,7 @@ void Game::render() {
         p->draw();
     }
     label.draw();
-
+    systemManager->draw();
     SDL_RenderPresent(renderer);
 }
 
@@ -170,8 +179,8 @@ void Game::update() {
     ss << "Player position: " << playerPos;
     label.getComponent<UILabel>().setLabelText(ss.str(), "baseFont");
 
-    manager.refresh();
-    manager.update();
+    entityManager.refresh();
+    entityManager.update();
 
     // for (auto& c : colliders) {
     //     SDL_FRect cCol = c->getComponent<ColliderComponent>().collider;
@@ -194,6 +203,8 @@ void Game::update() {
     else if (camera.x > camera.w) camera.x = camera.w;
     if (camera.y < 0) camera.y = 0;
     else if (camera.y > camera.h) camera.y = camera.h;
+
+    systemManager->update();
 }
 
 

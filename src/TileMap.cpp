@@ -8,7 +8,7 @@
 #include "ECS/Components.hpp"
 
 using namespace PRL;
-extern EntityManager manager;
+extern EntityManager entityManager;
 
 TileMap::TileMap() :
     mapSizeX_(0), mapSizeY_(0), tileSize_(0), mapScale_(0.0f),
@@ -90,7 +90,7 @@ void TileMap::loadMap(const std::string& fileName, int tileSetTilesCountX) {
 }
 
 void TileMap::addTile_(int srcX, int srcY, PosType x, PosType y, int collID) {
-    auto &tile(manager.addEntity());
+    auto &tile(entityManager.addEntity());
     tile.addComponent<TileComponent>(srcX, srcY, x, y, tileSize_, mapScale_, tileSetTextureID_);
     tile.addGroup(Game::groupMap);
 

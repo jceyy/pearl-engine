@@ -23,6 +23,7 @@ public:
     void addTexture(const std::string& id, const std::string& fileName);
     SDL_Texture* getTexture(const std::string& id);
     SDL_Texture* getTexture(const std::string& id, int& w, int& h);
+    void getTextureSize(const std::string& id, int& w, int& h);
 
     // Fonts
     void addFont(const std::string& fontID, const std::string& fileName, int fontSize);

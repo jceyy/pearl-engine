@@ -4,16 +4,17 @@
 #include "Systems.hpp"
 #include "../ECS/SpriteComponent.hpp"
 
-class RenderSystem : public System {
+class AnimationSystem : public System {
 public:
-    RenderSystem();
-    ~RenderSystem() {}
+    AnimationSystem();
+    ~AnimationSystem();
     
     void update() override;
     void draw() override;
 
+    inline static size_t instanceCount() noexcept { return instanceCount_; }
 private:
-
+    static size_t instanceCount_;
 };
 
 #endif // RENDER_SYSTEM_HPP

@@ -41,6 +41,7 @@ target_sources(prl_library
   PRIVATE
     Game.cpp 
     TextureManager.cpp
+    Types.cpp
     Vector2D.cpp
     Collision.cpp
     Logging.cpp
@@ -61,6 +62,8 @@ target_sources(prl_library
     ECS/ButtonComponent.cpp
     ECS/FadeComponent.cpp
     Systems/Systems.cpp
+    Systems/RenderSystem.cpp
+    Systems/AnimationSystem.cpp
   PUBLIC
     ${HEADER_LIST}
 )

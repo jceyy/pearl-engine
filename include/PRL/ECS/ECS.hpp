@@ -35,7 +35,7 @@ template<typename T> inline ComponentID getComponentTypeID() noexcept{
     return typeID;
 }
 
-class Component{
+class Component : public PRLObject {
 public:
     // To implement :
     Component() = default;
@@ -47,14 +47,14 @@ public:
 
     
     virtual void init() {};
-    virtual void update() {};
-    virtual void draw() {};
+    virtual void update() {}; // to be deprecated
+    virtual void draw() {}; // to be deprecated
     
     Entity* entity; // not protected?
 };
 
 
-class Entity {
+class Entity : public PRLObject {
 public:
     Entity(EntityManager& manager);
     // To be implemented :
@@ -64,25 +64,25 @@ public:
     Entity(Entity&&) = delete;
     Entity& operator=(Entity&&) = delete;
 
-    void update();
-    void draw();
+    void update(); // to be deprecated
+    void draw(); // to be deprecated
     void destroy();
-    bool isActive() const;
+    inline bool isActive() const noexcept { return isActive_; }
     bool hasGroup(EntityGroup group) const;
     void addGroup(EntityGroup group);
     void delGroup(EntityGroup group);
 
     inline ComponentBitSet getComponentSignature() const {
-        return componentBitSet_;
+        return componentSignature_;
     }
 
     template <typename T> inline bool hasComponent() const{
-        return componentBitSet_[getComponentTypeID<T>()];
+        return componentSignature_[getComponentTypeID<T>()];
     }
 
     template <typename T, typename... TArgs>
     T& addComponent(TArgs&&... mArgs){
-        if (componentBitSet_[getComponentTypeID<T>()]){
+        if (componentSignature_[getComponentTypeID<T>()]){
             // std::cout << "Component already added, returning it\n";
             return *static_cast<T*>(componentArray_[getComponentTypeID<T>()]);
         }
@@ -93,7 +93,7 @@ public:
         components_.emplace_back(std::move(uPtr));
 
         componentArray_[getComponentTypeID<T>()] = c;
-        componentBitSet_[getComponentTypeID<T>()] = true;
+        componentSignature_[getComponentTypeID<T>()] = true;
 
         c->init();
         notifySignatureChange_();
@@ -110,16 +110,16 @@ private:
     std::vector<std::unique_ptr<Component>> components_;
 
     std::array<Component*, maxComponents> componentArray_;
-    ComponentBitSet componentBitSet_;
+    ComponentBitSet componentSignature_;
     EntityGroupBitSet groupBitSet_;
     EntityManager& manager_;
 
-    void notifySignatureChange_(); // maybe not useful : nothing to remove components
+    void notifySignatureChange_();
 };
 
-class EntityManager{
+class EntityManager : public PRLObject {
 public:
-    EntityManager();
+    EntityManager(const SystemManager* systemManager);
     // To be implemented :
     EntityManager(const EntityManager&) = delete;
     EntityManager& operator=(const EntityManager&) = delete;
@@ -127,14 +127,9 @@ public:
     EntityManager& operator=(EntityManager&&) = delete;
     ~EntityManager() = default;
 
-    inline void setSystemManager(SystemManager* systemManager) {
-        systemManager_ = systemManager;
-    }
+    Entity& addEntity();
+    void destroyedEntity(Entity* entity);
     
-    inline SystemManager* getSystemManager() const {
-        return systemManager_;
-    }
-
     void update();
     void draw();
     void refresh();
@@ -144,13 +139,12 @@ public:
 
     size_t entityCount() const;
 
-    Entity& addEntity();
-
 private:
+
     std::vector<std::unique_ptr<Entity>> entities_;
     std::array<std::vector<Entity*>, maxGroups> groupedEntities_;
     SystemManager* systemManager_;
-
+    std::array<std::vector<Entity*>, SystemID::maxSystemID> entitiesPerSystem_;
 };
 
 // Base case for recursion
@@ -180,5 +174,9 @@ inline ComponentBitSet createSignature<>() {
     return ComponentBitSet();
 }
 
+
+// Rules for incompatible components :
+// - KeyboardComponent and ControllerComponent ?
+// - ...
 
 #endif // ENTITY_COMPONENT_SYSTEM_HPP

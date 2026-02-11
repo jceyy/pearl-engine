@@ -1,6 +1,20 @@
 #include "Systems/Systems.hpp"
 #include <algorithm>
 
+std::size_t SystemID::idCounter_ = 0;
+
+// System implementation //
+size_t System::instanceCount_ = 0;
+System::System() : signature_(0u), systemManager_(nullptr) {
+    instanceCount_++;
+}
+
+System::~System() {
+    instanceCount_--;
+}
+
+
+// SystemManager implementation //
 void SystemManager::entitySignatureChanged(Entity* entity, ComponentBitSet entitySignature) {
     for (auto it = systems_.begin(); it != systems_.end(); ++it) {
         
