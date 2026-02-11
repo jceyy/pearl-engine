@@ -31,7 +31,6 @@ void PhysicsComponent::init() {
     entity->addComponent<SpriteComponent>();
 
     transform_ = &entity->getComponent<TransformComponent>();
-    transform_->hasPhysicsComponent_ = true;
     position_ = &transform_->position;
     position_previous_ = *position_;
 

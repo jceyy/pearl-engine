@@ -28,7 +28,6 @@ private:
     std::string fontID_;
     SDL_Color textColor_;
     SDL_Texture* labelTexture_;
-
 };
 
 

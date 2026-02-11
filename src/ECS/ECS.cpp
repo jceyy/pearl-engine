@@ -1,26 +1,31 @@
 #include "ECS/ECS.hpp"
+#include "Systems/Systems.hpp"
 
 Entity::Entity(EntityManager& manager) : isActive_(true),
 manager_(manager) {}
 
 void Entity::destroy() {
     isActive_ = false;
+    SystemManager* sysManager = manager_.getSystemManager();
+    if (sysManager != nullptr) {
+        sysManager->entityDestroyed(this);
+    }
 }
 
 bool Entity::isActive() const {
     return isActive_;
 }
 
-bool Entity::hasGroup(Group group) const {
+bool Entity::hasGroup(EntityGroup group) const {
     return groupBitSet_[group]; 
 }
 
-void Entity::addGroup(Group group){
+void Entity::addGroup(EntityGroup group){
     groupBitSet_[group] = true;
     manager_.addToGroup(this, group);
 }
 
-void Entity::delGroup(Group group){
+void Entity::delGroup(EntityGroup group){
     groupBitSet_[group] = false;
 }
 
@@ -32,6 +37,15 @@ void Entity::draw() {
     for (auto& c : components_) c->draw();
 }
 
+void Entity::notifySignatureChange_() {
+    SystemManager* sysManager = manager_.getSystemManager();
+    if (sysManager != nullptr) {
+        sysManager->entitySignatureChanged(this, componentBitSet_);
+    }
+}
+
+
+EntityManager::EntityManager() : systemManager_(nullptr) {}
 
 void EntityManager::update() {
     for (auto& e : entities_) e->update();
@@ -58,11 +72,11 @@ void EntityManager::refresh() {
     }), std::end(entities_));
 }
 
-void EntityManager::addToGroup(Entity* entity, Group group) {
+void EntityManager::addToGroup(Entity* entity, EntityGroup group) {
     groupedEntities_[group].emplace_back(entity);
 }
 
-std::vector<Entity*>& EntityManager::getGroup(Group group) {
+std::vector<Entity*>& EntityManager::getGroup(EntityGroup group) {
     return groupedEntities_[group];
 }
 
@@ -75,10 +89,4 @@ Entity& EntityManager::addEntity() {
 
 size_t EntityManager::entityCount() const {
     return entities_.size();
-}
-
-void EntityManager::checkCollisions_() {
-    for(;;) { // For every bit of discretized space
-
-    }
 }

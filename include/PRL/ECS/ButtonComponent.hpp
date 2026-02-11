@@ -1,6 +1,6 @@
 #ifndef _BUTTON_COMPONENT_HPP_INCLUDED
 #define _BUTTON_COMPONENT_HPP_INCLUDED
-
+/*
 #include "ECS.hpp"
 #include "UILabel.hpp"
 
@@ -36,6 +36,6 @@ private:
 
     UILabel* uiLabel_;
 
-};
+};*/
 
 #endif // _BUTTON_COMPONENT_HPP_INCLUDED

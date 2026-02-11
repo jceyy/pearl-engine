@@ -39,6 +39,8 @@ private:
 
     size_t animIndex_;
     std::map<std::string, Animation> animations_;
+
+    friend class RenderSystem;
 };
 
 #endif // _SPRITE_COMPONENT_HPP_INCLUDED

@@ -7,7 +7,12 @@ textColor_(color), labelTexture_(nullptr) {
 }
 
 
-UILabel::~UILabel() {}
+UILabel::~UILabel() {
+    if (labelTexture_ != nullptr) {
+        SDL_DestroyTexture(labelTexture_);
+        labelTexture_ = nullptr;
+    }
+}
 
 void UILabel::setLabelText(const std::string& text) {
     setLabelText(text, fontID_);

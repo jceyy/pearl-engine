@@ -29,9 +29,7 @@ public:
 
 
 private:
-    friend class PhysicsComponent;
     bool isStatic_;
-    bool hasPhysicsComponent_ = false; // To do : remove this variable
 };
 
 #endif // _TRANSFORM_COMPONENT_HPP_INCLUDED

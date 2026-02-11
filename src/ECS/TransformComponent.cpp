@@ -35,17 +35,12 @@ TransformComponent::TransformComponent(PosType x, PosType y, int w_, int h_, flo
     h = h_;
 }
 
-void TransformComponent::init() {
-    if (this->entity->hasComponent<PhysicsComponent>()) {
-        hasPhysicsComponent_ = true;
-    }
-}
+void TransformComponent::init() {}
 
 void TransformComponent::setPos(PosType x, PosType y) {
     position.set(x, y);
 }
 
 void TransformComponent::update() {
-    if (not hasPhysicsComponent_)
-        position += velocity;
+    position += velocity;
 }

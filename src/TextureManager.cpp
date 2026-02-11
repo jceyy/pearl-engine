@@ -27,7 +27,7 @@ SDL_Texture* TextureManager::loadTexture(const std::string& fileName, int& w, in
 
 SDL_FRect TextureManager::dst_floored_ = {0, 0, 0, 0};
 void TextureManager::Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip) {
-    dst_floored_ = {floorf(dst->x + 0.001f), floorf(dst->y + 0.001f), dst->w, dst->h}; 
+    dst_floored_ = {floorf(dst->x + 0.001f), floorf(dst->y + 0.0001f), dst->w, dst->h}; 
     SDL_RenderCopyExF(Game::renderer, texture, src, &dst_floored_, 0, nullptr, flip);
 }
 
