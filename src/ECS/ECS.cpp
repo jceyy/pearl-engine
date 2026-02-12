@@ -1,8 +1,11 @@
 #include "ECS/ECS.hpp"
 #include "Systems/Systems.hpp"
+#include "Logging.hpp"
 
-Entity::Entity(EntityManager& entityManager) : isActive_(true),
-entityManager_(entityManager) {}
+using namespace std;
+
+Entity::Entity(EntityManager& manager) : isActive_(true),
+entityManager_(manager) {}
 
 void Entity::destroy() {
     isActive_ = false;
@@ -30,17 +33,25 @@ void Entity::draw() {
 }
 
 void Entity::notifySignatureChange_() {
-    SystemManager* sysManager = entityManager_.getSystemManager();
-    if (sysManager != nullptr) {
-        sysManager->entitySignatureChanged(this, componentSignature_);
-    }
+    entityManager_.signatureChanged(this, componentSignature_);
 }
 
+// EntityManager implementation //
+size_t EntityManager::instanceCount_ = 0;
+EntityManager::EntityManager() :
+    entities_(vector<unique_ptr<Entity>>(0)), 
+    groupedEntities_(array<vector<Entity*>, maxGroups>({vector<Entity*>()})),
+    entitiesPerSystem_(array<vector<Entity*>, maxSystemID>({vector<Entity*>()})),
+    systemManager_(nullptr) {
+    instanceCount_++;
+}
 
-EntityManager::EntityManager(const SystemManager* systemManager) : systemManager_(systemManager) {
-    if (systemManager_ == nullptr) {
-        PRL::err("SystemManager pointer is null", "EntityManager::EntityManager");
-    }
+EntityManager::~EntityManager() {
+    instanceCount_--;
+}
+
+void EntityManager::setSystemManager(SystemManager* systemManager) {
+    systemManager_ = systemManager;
 }
 
 void EntityManager::update() {
@@ -66,21 +77,13 @@ void EntityManager::refresh() {
             }), std::end(v));
     }
 
-    // remove from managed system entity lists :
-    // - if entitiy is destroyed, or 
-    // - if entity doesn't match system signature anymore
-    const ComponentBitSet nullSignature = 0u;
+    // remove inactive entities from system entity lists
     for (size_t i = 0; i < SystemID::maxSystemID; ++i) {
         auto& v = entitiesPerSystem_[i];
         v.erase(
             std::remove_if(std::begin(v), std::end(v),
             [](Entity* entity) {
-                return (
-                    !entity->isActive() || (
-                        entity->getComponentSignature() != nullSignature &&
-                        entity->getComponentSignature() & systemManager_->getSignature(i) != systemManager_->getSignature(i)
-                    )
-                );
+                return !entity->isActive();
             }), std::end(v));
     }
 
@@ -107,6 +110,42 @@ Entity& EntityManager::addEntity() {
     return *e;
 }
 
-size_t EntityManager::entityCount() const {
-    return entities_.size();
+// SystemManager* EntityManager::getSystemManager() const {
+//     return systemManager_;
+// }
+
+std::vector<Entity*>& EntityManager::getEntitiesForSystem(std::size_t systemID) {
+    return entitiesPerSystem_[systemID];
+}
+
+void EntityManager::signatureChanged(Entity* entity, ComponentSignature entitySignature) {
+    if (systemManager_ == nullptr) {
+        return;
+    }
+
+    // Update entity presence in each system's entity list
+    for (std::size_t systemID = 0; systemID < SystemID::maxSystemID; ++systemID) {
+        ComponentSignature systemSignature = systemManager_->getSignature(systemID);
+        cout << "[DEBUG] Checking system " << systemID << " with signature " << systemSignature.bitset() << " against entity signature " << entitySignature.bitset() << endl;
+        if (systemSignature.none()) { 
+            continue;
+        }
+        
+        auto& systemEntities = entitiesPerSystem_[systemID];
+        
+        // Check if entity matches system signature
+        bool matches = systemSignature.matches(entitySignature);
+        
+        // Find if entity is already in the list
+        auto it = std::find(systemEntities.begin(), systemEntities.end(), entity);
+        bool inList = (it != systemEntities.end());
+        
+        if (matches && !inList) {
+            // Entity now matches, add it
+            systemEntities.push_back(entity);
+        } else if (!matches && inList) {
+            // Entity no longer matches, remove it
+            systemEntities.erase(it);
+        }
+    }
 }

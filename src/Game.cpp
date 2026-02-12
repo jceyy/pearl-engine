@@ -37,7 +37,7 @@ SDL_Renderer* Game::renderer = nullptr;
 bool Game::isRunning = false;
 SDL_FRect Game::camera = {0, 0, 800, 640};
 AssetManager* Game::assetManager = new AssetManager(&entityManager);
-SystemManager* Game::systemManager = new SystemManager();
+SystemManager* Game::systemManager = new SystemManager(entityManager);
 
 size_t Game::instanceCount_ = 0;
 Game::Game() {
@@ -47,8 +47,7 @@ Game::Game() {
 Game::~Game() {
     instanceCount_--;
 }
-void Game::init(const std::string& title, int xpos, int ypos, int width, int height, bool fullscreen) {
-    
+void Game::init(const std::string& title, int xpos, int ypos, int width, int height, bool fullscreen) {    
     int windowFlags = 0;
     if(SDL_Init(SDL_INIT_EVERYTHING) == 0) {
         PRL::Logging::log("SDL subsystems initialized", "PRL::Game::init()");
@@ -110,10 +109,11 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
 
         SDL_Color colorWhite = {255, 255, 255, 255};
         label.addComponent<UILabel>(10, 10, "Test String", "baseFont", colorWhite);
-        
+
         entityManager.refresh();
         entityManager.update();
 
+        entityManager.setSystemManager(systemManager);
         systemManager->registerSystem<RenderSystem>();
 
     }
@@ -209,11 +209,11 @@ void Game::update() {
 
 
 void Game::clean() {
+    PRL::Logging::log("Quitting SDL", "PRL::Game::clean()");
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window_);
     SDL_Quit();
     PRL::Logging::log("Game cleaned", "PRL::Game::clean()");
-    SDL_Delay(1000); // Temporary delay for logging visibility
 }
 
 Uint64 Game::current_time_us_ = 0;

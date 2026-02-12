@@ -7,33 +7,13 @@
 #include <memory>
 #include <bitset>
 #include <algorithm>
-#include <unordered_map>
-#include "../PhysicsManager.hpp"
+#include <assert.h>
+#include "Types.hpp"
+#include "ECSBasics.hpp"
 
-class Component;
-class Entity;
 class EntityManager;
 class SystemManager;
-
-constexpr std::size_t maxComponents = 32;
-constexpr std::size_t maxGroups = 32;
-
-using ComponentID = std::size_t;
-using EntityGroup = std::size_t;
-using ComponentBitSet = std::bitset<maxComponents>;
-using EntityGroupBitSet = std::bitset<maxGroups>;
-
-
-
-inline ComponentID getNewComponentTypeID(){
-    static ComponentID lastID = 0u;
-    return lastID++;
-}
-
-template<typename T> inline ComponentID getComponentTypeID() noexcept{
-    static ComponentID typeID = getNewComponentTypeID();
-    return typeID;
-}
+class Entity;
 
 class Component : public PRLObject {
 public:
@@ -57,13 +37,12 @@ public:
 class Entity : public PRLObject {
 public:
     Entity(EntityManager& manager);
-    // To be implemented :
-    ~Entity() = default;
     Entity(const Entity&) = delete;
     Entity& operator=(const Entity&) = delete;
     Entity(Entity&&) = delete;
     Entity& operator=(Entity&&) = delete;
-
+    ~Entity() = default;
+    
     void update(); // to be deprecated
     void draw(); // to be deprecated
     void destroy();
@@ -72,19 +51,19 @@ public:
     void addGroup(EntityGroup group);
     void delGroup(EntityGroup group);
 
-    inline ComponentBitSet getComponentSignature() const {
+    inline ComponentSignature getComponentSignature() const {
         return componentSignature_;
     }
 
     template <typename T> inline bool hasComponent() const{
-        return componentSignature_[getComponentTypeID<T>()];
+        return componentSignature_[static_cast<size_t>(ComponentID::getComponentTypeID<T>())];
     }
 
     template <typename T, typename... TArgs>
     T& addComponent(TArgs&&... mArgs){
-        if (componentSignature_[getComponentTypeID<T>()]){
-            // std::cout << "Component already added, returning it\n";
-            return *static_cast<T*>(componentArray_[getComponentTypeID<T>()]);
+        if (componentSignature_[static_cast<size_t>(ComponentID::getComponentTypeID<T>())]){
+            // Component already added, returning it
+            return *static_cast<T*>(componentArray_[static_cast<size_t>(ComponentID::getComponentTypeID<T>())]);
         }
 
         T* c(new T(std::forward<TArgs>(mArgs)...));
@@ -92,8 +71,8 @@ public:
         std::unique_ptr<Component> uPtr { c };
         components_.emplace_back(std::move(uPtr));
 
-        componentArray_[getComponentTypeID<T>()] = c;
-        componentSignature_[getComponentTypeID<T>()] = true;
+        componentArray_[static_cast<size_t>(ComponentID::getComponentTypeID<T>())] = c;
+        componentSignature_[static_cast<size_t>(ComponentID::getComponentTypeID<T>())] = true;
 
         c->init();
         notifySignatureChange_();
@@ -101,78 +80,56 @@ public:
     }
 
     template <typename T> inline T& getComponent() const{
-        auto ptr(componentArray_[getComponentTypeID<T>()]);
+        auto ptr(componentArray_[static_cast<size_t>(ComponentID::getComponentTypeID<T>())]);
         return *static_cast<T*>(ptr);
     }
 
 private:
     bool isActive_ = false;
     std::vector<std::unique_ptr<Component>> components_;
-
     std::array<Component*, maxComponents> componentArray_;
-    ComponentBitSet componentSignature_;
+    ComponentSignature componentSignature_;
     EntityGroupBitSet groupBitSet_;
-    EntityManager& manager_;
+    EntityManager& entityManager_;
 
     void notifySignatureChange_();
 };
 
 class EntityManager : public PRLObject {
 public:
-    EntityManager(const SystemManager* systemManager);
-    // To be implemented :
+    EntityManager();
     EntityManager(const EntityManager&) = delete;
     EntityManager& operator=(const EntityManager&) = delete;
     EntityManager(EntityManager&&) = delete;
     EntityManager& operator=(EntityManager&&) = delete;
-    ~EntityManager() = default;
+    ~EntityManager();
 
     Entity& addEntity();
-    void destroyedEntity(Entity* entity);
-    
+    void setSystemManager(SystemManager* systemManager);
     void update();
     void draw();
     void refresh();
     void addToGroup(Entity* entity, EntityGroup group);
 
     std::vector<Entity*>& getGroup(EntityGroup group);
+    std::vector<Entity*>& getEntitiesForSystem(std::size_t systemID);
+    
+    void signatureChanged(Entity* entity, ComponentSignature signature);
+    // SystemManager* getSystemManager() const;
+    inline size_t entityCount() const noexcept { return entities_.size(); }
 
-    size_t entityCount() const;
+    static inline size_t getInstanceCount() noexcept { return instanceCount_; }
 
 private:
-
     std::vector<std::unique_ptr<Entity>> entities_;
     std::array<std::vector<Entity*>, maxGroups> groupedEntities_;
+    std::array<std::vector<Entity*>, maxSystemID> entitiesPerSystem_;
     SystemManager* systemManager_;
-    std::array<std::vector<Entity*>, SystemID::maxSystemID> entitiesPerSystem_;
+
+    static size_t instanceCount_;
 };
 
-// Base case for recursion
-template <typename T>
-void addToSignature(ComponentBitSet& signature) {
-    signature.set(getComponentTypeID<T>());
-}
 
-// Recursive case
-template <typename T, typename... Rest>
-void addToSignature(ComponentBitSet& signature) {
-    signature.set(getComponentTypeID<T>());
-    addToSignature<Rest...>(signature);
-}
-
-// Main function that creates the signature
-template <typename... ComponentTypes>
-ComponentBitSet createSignature() {
-    ComponentBitSet signature;
-    addToSignature<ComponentTypes...>(signature);
-    return signature;
-}
-
-// Specialization for zero components
-template <>
-inline ComponentBitSet createSignature<>() {
-    return ComponentBitSet();
-}
 
 
 // Rules for incompatible components :

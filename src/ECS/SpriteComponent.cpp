@@ -108,6 +108,7 @@ SDL_RendererFlip SpriteComponent::getFlip() const noexcept {
 
 
 void SpriteComponent::updateRect_(int w, int h) {
+    if (false) std::cout << w << " " << h; // to avoid unused parameter warning, to be removed when this function is implemented
     // transform_->w = w;
     // transform_->h = h;
     // srcRect_.w = w;

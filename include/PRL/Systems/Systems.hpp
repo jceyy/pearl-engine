@@ -2,84 +2,85 @@
 #define SYSTEM_HPP
 
 #include <vector>
-#include <unordered_map>
 #include <memory>
+#include <array>
+#include "Types.hpp"
+#include "ECS/ECSBasics.hpp"
 #include "Logging.hpp"
-#include "../ECS/ECS.hpp"
 
-class SystemID : public PRLObject {
-public:
-    template<typename T>
-    static inline std::size_t value() {
-        static_assert(std::is_base_of<System, T>::value, "T must inherit from System");
-        static const std::size_t id = idCounter_++;
-        static_assert(id < maxSystemID, "Exceeded maximum number of systems");
-        return id;
-    }
-    constexpr static std::size_t maxSystemID = 32;
-
-private:
-    static std::size_t idCounter_;
-};
+class EntityManager;
 
 
 class System : public PRLObject {
 public:
-    System(EntityManager* entityManager); // add instance counter in this class
+    System();
+    System(EntityManager* entityManager, ComponentSignature signature = ComponentSignature(0u));
     System(const System& other) = delete;
     System(System&& other) noexcept = delete;
     System& operator=(const System& other) = delete;
     System& operator=(System&& other) noexcept = delete;
     virtual ~System() = 0;
     
+    // void setEntityManager(EntityManager& entityManager, ComponentSignature signature);
+
     virtual void update() = 0;
     virtual void draw() = 0;
 
-    std::vector<Entity*> entities; // Entities matching this system's signature
     inline static size_t getInstanceCount() noexcept { return instanceCount_; }
+    inline ComponentSignature getSignature() const noexcept { return signature_; }
 
 protected:
-    ComponentBitSet signature_; //!< Component signature of entities updated by this system
+    ComponentSignature signature_; //!< Component signature of entities updated by this system
+    EntityManager* entityManager_; //!< Access to entities matching this system
 
 private:
-    EntityManager* entityManager_;
     static size_t instanceCount_;
 
+    friend class SystemManager;
 };
 
 
 class SystemManager : public PRLObject {
 public:
+    SystemManager() = delete;
+    SystemManager(EntityManager& entityManager);
+    SystemManager(const SystemManager& other) = delete;
+    SystemManager(SystemManager&& other) noexcept = delete;
+    SystemManager& operator=(const SystemManager& other) = delete;
+    SystemManager& operator=(SystemManager&& other) noexcept = delete;
+    ~SystemManager();
+
     template <typename T, typename... TArgs>
-    std::shared_ptr<T> registerSystem(TArgs&&... mArgs) {
-        if (systems_[SystemID::value<T>()] != nullptr) {
-            // System already registered
-            return std::static_pointer_cast<T>(systems_[SystemID::value<T>()]);
+    T& registerSystem(TArgs&&... mArgs) { 
+        std::size_t systemID = SystemID::getSystemTypeID<T>(); 
+        if (systemArray_[systemID] != nullptr) {
+            // System already registered, return existing
+            return *static_cast<T*>(systemArray_[systemID]);
         }
+        T* c(new T(std::forward<TArgs>(mArgs)...));
+        c->entityManager_ = &entityManager_;
+        std::unique_ptr<System> uPtr { c };
+        systems_.emplace_back(std::move(uPtr)); 
 
-        std::shared_ptr<T> system = std::make_shared<T>(std::forward<TArgs>(mArgs)...);
-        systems_[SystemID::value<T>()] = system;
-        // signatures_[SystemID::value<T>()] = system->signature_;
-        return system;
+        systemArray_[systemID] = c;
+        registeredSystems_[systemID] = true;
+        return *c;
     }
-
-    ComponentBitSet getSignature(SystemID systemID) const {
-        return signatures_[systemID.value()];
-    }
-
-    void entityDestroyed(Entity* entity); // to be deprecated, dealt with in EntityManager
-    void entitySignatureChanged(Entity* entity, ComponentBitSet entitySignature);
-
-    inline ComponentBitSet getSignature(SystemID systemID) const {
-        return signatures_[systemID.value()];
-    } 
+    
+    ComponentSignature getSignature(std::size_t systemID) const;
 
     void update();
     void draw();
 
+    static inline size_t getInstanceCount() noexcept { return instanceCount_; }
+
 private:
-    // std::array<ComponentBitSet, SystemID::maxSystemID> signatures_;
-    std::array<std::shared_ptr<System>, SystemID::maxSystemID> systems_;
+    std::vector<std::unique_ptr<System>> systems_;
+    std::array<System*, maxSystemID> systemArray_;
+    std::bitset<maxSystemID> registeredSystems_;
+    EntityManager& entityManager_;
+
+    static size_t instanceCount_;
 };
 
 #endif // SYSTEM_HPP

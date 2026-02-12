@@ -1,10 +1,10 @@
 #include "Systems/AnimationSystem.hpp"
-#include "ECS/AnimationComponent.hpp"
 
 size_t AnimationSystem::instanceCount_ = 0;
 
-AnimationSystem::AnimationSystem() {
-    signature_.set(getComponentTypeID<AnimationComponent>());
+AnimationSystem::AnimationSystem(EntityManager* entityManager, ComponentSignature signature) :
+System(entityManager, signature) {
+    signature_.set(ComponentID::getComponentTypeID<AnimationComponent>());
     instanceCount_++;
 }
 

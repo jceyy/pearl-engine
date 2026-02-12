@@ -7,6 +7,8 @@
 class RenderSystem : public System {
 public:
     RenderSystem();
+    RenderSystem(EntityManager* entityManager, 
+        ComponentSignature signature = ComponentSignature::create<SpriteComponent>());
     ~RenderSystem() {}
     
     void update() override;
