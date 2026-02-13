@@ -6,25 +6,25 @@ size_t SpriteComponent::instanceCount_ = 0;
 // Constructors, destructor, and assignment operators
 SpriteComponent::SpriteComponent() :
 textureID_(""), texture_(nullptr), 
-srcRect_({0, 0, 0, 0}), dstRect_({0, 0, 0, 0}), spriteFlip_(SDL_FLIP_NONE) {
+srcRect_({0, 0, 0, 0}), dstRect_({0, 0, 0, 0}), spriteFlip(SDL_FLIP_NONE) {
     instanceCount_++;
 }
 
 SpriteComponent::SpriteComponent(const SpriteComponent& other) :
 textureID_(other.textureID_), texture_(other.texture_), 
-srcRect_(other.srcRect_), dstRect_(other.dstRect_), spriteFlip_(other.spriteFlip_) {
+srcRect_(other.srcRect_), dstRect_(other.dstRect_), spriteFlip(other.spriteFlip) {
     instanceCount_++;
 }
 
 SpriteComponent::SpriteComponent(SpriteComponent&& other) noexcept :
 textureID_(std::move(other.textureID_)), texture_(other.texture_),
-srcRect_(other.srcRect_), dstRect_(other.dstRect_), spriteFlip_(other.spriteFlip_) {
+srcRect_(other.srcRect_), dstRect_(other.dstRect_), spriteFlip(other.spriteFlip) {
     other.texture_ = nullptr;
 }
 
 SpriteComponent::SpriteComponent(const std::string& textureID) :
 textureID_(textureID), texture_(nullptr), 
-srcRect_({0, 0, 0, 0}), dstRect_({0, 0, 0, 0}), spriteFlip_(SDL_FLIP_NONE) {
+srcRect_({0, 0, 0, 0}), dstRect_({0, 0, 0, 0}), spriteFlip(SDL_FLIP_NONE) {
     instanceCount_++;
 }
 
@@ -38,18 +38,18 @@ SpriteComponent& SpriteComponent::operator=(const SpriteComponent& other) {
         texture_ = other.texture_;
         srcRect_ = other.srcRect_;
         dstRect_ = other.dstRect_;
-        spriteFlip_ = other.spriteFlip_;
+        spriteFlip = other.spriteFlip;
     }
     return *this;
 }
 
 SpriteComponent& SpriteComponent::operator=(SpriteComponent&& other) noexcept {
     if (this != &other) {
+        spriteFlip = other.spriteFlip;
         textureID_ = std::move(other.textureID_);
         texture_ = other.texture_;
         srcRect_ = other.srcRect_;
         dstRect_ = other.dstRect_;
-        spriteFlip_ = other.spriteFlip_;
         other.texture_ = nullptr;
     }
     return *this;
@@ -79,14 +79,6 @@ void SpriteComponent::setTexture(const std::string& texID) {
 //     animIndex_ = animations_[animName].index;
 //     animFPS_ = animations_[animName].fps;
 // }
-
-void SpriteComponent::setFlip(SDL_RendererFlip flip){
-    spriteFlip_ = flip;
-}
-
-SDL_RendererFlip SpriteComponent::getFlip() const noexcept {
-    return spriteFlip_;
-}
 
 void SpriteComponent::updateRect_(int w, int h) {
     if (false) std::cout << w << " " << h; // to avoid unused parameter warning, to be removed when this function is implemented

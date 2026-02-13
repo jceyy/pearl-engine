@@ -108,7 +108,7 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         ball1.addComponent<TransformComponent>(600, 400, 1);
         ball1.addComponent<SpriteComponent>("test");
         // ball1.getComponent<SpriteComponent>().setTexture("circle", 16, 16);
-        ball1.addComponent<PhysicsComponent>();
+        // ball1.addComponent<PhysicsComponent>();
         ball1.addGroup(groupPlayers);
 
         SDL_Color colorWhite = {255, 255, 255, 255};
