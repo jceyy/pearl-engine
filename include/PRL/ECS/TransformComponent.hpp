@@ -2,34 +2,32 @@
 #define _TRANSFORM_COMPONENT_HPP_INCLUDED
 
 #include "ECS.hpp"
-#include "../Types.hpp"
-#include "../Vector2D.hpp"
+#include "Types.hpp"
+#include "Vector2D.hpp"
 
 class TransformComponent : public Component {
 public:
     TransformComponent();
     TransformComponent(PosType x, PosType y);
-    TransformComponent(PosType x, PosType y, float scale);
-    TransformComponent(PosType x, PosType y, int w, int h, float scale);
-
-    inline bool isStatic() const noexcept { return isStatic_; }
-    inline void setStatic(bool isStatic) noexcept { isStatic_ = isStatic; }
-    inline void makeStatic() noexcept { isStatic_ = true; }
+    TransformComponent(PosType x, PosType y, PosType scaleX = 1.0, 
+        PosType scaleY = 1.0, PosType rotation = 0.0);
+    TransformComponent(const TransformComponent& other);
+    TransformComponent(TransformComponent&& other) noexcept = default;
+    ~TransformComponent();
+    TransformComponent& operator=(const TransformComponent& other) = default;
+    TransformComponent& operator=(TransformComponent&& other) noexcept = default;
 
     Vector2D position;
-    Vector2D velocity;
+    Vector2D scale;
+    PosType rotation;
 
-    int w;
-    int h;
-    float scale;
+    void init() override {}
+    inline void setPos(PosType x, PosType y) noexcept { position.set(x, y); };
 
-    void init() override;
-    void update() override;
-    void setPos(PosType x, PosType y);
-
+    inline static size_t getInstanceCount() noexcept { return instanceCount_; }
 
 private:
-    bool isStatic_;
+    static size_t instanceCount_;
 };
 
 #endif // _TRANSFORM_COMPONENT_HPP_INCLUDED

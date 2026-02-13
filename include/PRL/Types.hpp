@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 
 using PosType = float;
-using PRL_Rect = SDL_FRect;
+// using PRL_Rect = SDL_FRect;
 
 
 #include "Vector2D.hpp"

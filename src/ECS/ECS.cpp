@@ -1,11 +1,24 @@
 #include "ECS/ECS.hpp"
 #include "Systems/Systems.hpp"
 #include "Logging.hpp"
+#include "ECS/SpriteComponent.hpp" // temporary for debug purposes
 
 using namespace std;
 
-Entity::Entity(EntityManager& manager) : isActive_(true),
-entityManager_(manager) {}
+size_t Entity::instanceCount_ = 0;
+Entity::Entity() : isActive_(true), entityManager_(nullptr) {
+    instanceCount_++;
+}
+
+Entity::Entity(EntityManager* manager) : isActive_(true),
+entityManager_(manager) {
+    assert(manager != nullptr);
+    instanceCount_++;
+}
+
+Entity::~Entity() {
+    instanceCount_--;
+}
 
 void Entity::destroy() {
     isActive_ = false;
@@ -17,7 +30,7 @@ bool Entity::hasGroup(EntityGroup group) const {
 
 void Entity::addGroup(EntityGroup group){
     groupBitSet_[group] = true;
-    entityManager_.addToGroup(this, group);
+    entityManager_->addToGroup(this, group);
 }
 
 void Entity::delGroup(EntityGroup group){
@@ -33,15 +46,15 @@ void Entity::draw() {
 }
 
 void Entity::notifySignatureChange_() {
-    entityManager_.signatureChanged(this, componentSignature_);
+    entityManager_->entitySignatureChanged(this, componentSignature_);
 }
 
 // EntityManager implementation //
 size_t EntityManager::instanceCount_ = 0;
 EntityManager::EntityManager() :
     entities_(vector<unique_ptr<Entity>>(0)), 
-    groupedEntities_(array<vector<Entity*>, maxGroups>({vector<Entity*>()})),
-    entitiesPerSystem_(array<vector<Entity*>, maxSystemID>({vector<Entity*>()})),
+    groupedEntities_(array<vector<Entity*>, ECS::maxGroups>({vector<Entity*>()})),
+    entitiesPerSystem_(array<vector<Entity*>, ECS::maxSystems>({vector<Entity*>()})),
     systemManager_(nullptr) {
     instanceCount_++;
 }
@@ -51,6 +64,7 @@ EntityManager::~EntityManager() {
 }
 
 void EntityManager::setSystemManager(SystemManager* systemManager) {
+    assert(systemManager != nullptr);
     systemManager_ = systemManager;
 }
 
@@ -68,7 +82,7 @@ void EntityManager::draw() {
 
 void EntityManager::refresh() {
     // remove unactive entities from groups
-    for(auto i(0u); i < maxGroups; ++i){
+    for(auto i(0u); i < ECS::maxGroups; ++i){
         auto& v(groupedEntities_[i]);
         v.erase(
             std::remove_if(std::begin(v), std::end(v), 
@@ -103,7 +117,7 @@ std::vector<Entity*>& EntityManager::getGroup(EntityGroup group) {
 }
 
 Entity& EntityManager::addEntity() {
-    Entity* e = new Entity(*this);
+    Entity* e = new Entity(this);
     std::unique_ptr<Entity> uPtr{e};
     entities_.emplace_back(std::move(uPtr));
     // at this point, entity has no component
@@ -118,10 +132,14 @@ std::vector<Entity*>& EntityManager::getEntitiesForSystem(std::size_t systemID) 
     return entitiesPerSystem_[systemID];
 }
 
-void EntityManager::signatureChanged(Entity* entity, ComponentSignature entitySignature) {
+void EntityManager::entitySignatureChanged(Entity* entity, ComponentSignature entitySignature) {
+    cout << "[DEBUG] EntityManager::entitySignatureChanged called" << endl;
     if (systemManager_ == nullptr) {
+        PRL::Logging::log("System manager not set in EntityManager", "EntityManager::entitySignatureChanged()");
         return;
     }
+    cout << "[DEBUG] Entity " << entity << " signature changed. Matches RenderSystem ? " 
+         << ComponentSignature::create<SpriteComponent>().matches(entitySignature) << endl;
 
     // Update entity presence in each system's entity list
     for (std::size_t systemID = 0; systemID < SystemID::maxSystemID; ++systemID) {

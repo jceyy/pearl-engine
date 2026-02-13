@@ -36,12 +36,13 @@ public:
 
 class Entity : public PRLObject {
 public:
-    Entity(EntityManager& manager);
+    Entity();
+    Entity(EntityManager* manager);
     Entity(const Entity&) = delete;
     Entity& operator=(const Entity&) = delete;
     Entity(Entity&&) = delete;
     Entity& operator=(Entity&&) = delete;
-    ~Entity() = default;
+    ~Entity();
     
     void update(); // to be deprecated
     void draw(); // to be deprecated
@@ -84,13 +85,17 @@ public:
         return *static_cast<T*>(ptr);
     }
 
+    static inline size_t getInstanceCount() noexcept { return instanceCount_; }
+
 private:
     bool isActive_ = false;
     std::vector<std::unique_ptr<Component>> components_;
-    std::array<Component*, maxComponents> componentArray_;
+    std::array<Component*, ECS::maxComponents> componentArray_;
     ComponentSignature componentSignature_;
     EntityGroupBitSet groupBitSet_;
-    EntityManager& entityManager_;
+    EntityManager* entityManager_;
+
+    static size_t instanceCount_;
 
     void notifySignatureChange_();
 };
@@ -114,7 +119,7 @@ public:
     std::vector<Entity*>& getGroup(EntityGroup group);
     std::vector<Entity*>& getEntitiesForSystem(std::size_t systemID);
     
-    void signatureChanged(Entity* entity, ComponentSignature signature);
+    void entitySignatureChanged(Entity* entity, ComponentSignature signature);
     // SystemManager* getSystemManager() const;
     inline size_t entityCount() const noexcept { return entities_.size(); }
 
@@ -122,8 +127,8 @@ public:
 
 private:
     std::vector<std::unique_ptr<Entity>> entities_;
-    std::array<std::vector<Entity*>, maxGroups> groupedEntities_;
-    std::array<std::vector<Entity*>, maxSystemID> entitiesPerSystem_;
+    std::array<std::vector<Entity*>, ECS::maxGroups> groupedEntities_;
+    std::array<std::vector<Entity*>, ECS::maxSystems> entitiesPerSystem_;
     SystemManager* systemManager_;
 
     static size_t instanceCount_;

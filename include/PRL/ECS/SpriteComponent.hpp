@@ -25,6 +25,7 @@ public:
     void setFlip(SDL_RendererFlip flip);
     SDL_RendererFlip getFlip() const noexcept;
 
+    static inline size_t getInstanceCount() noexcept { return instanceCount_; }
 
 private:
     void updateRect_(int w, int h);
@@ -41,7 +42,7 @@ private:
     // size_t animIndex_;
     // std::map<std::string, Animation> animations_;
 
-    static size_t count_;
+    static size_t instanceCount_;
 
     friend class RenderSystem;
 };

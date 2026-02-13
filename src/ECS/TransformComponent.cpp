@@ -2,45 +2,27 @@
 #include "ECS/TransformComponent.hpp"
 #include "ECS/PhysicsComponent.hpp"
 
-TransformComponent::TransformComponent() : isStatic_(false) 
+size_t TransformComponent::instanceCount_ = 0;
+TransformComponent::TransformComponent() : position(0, 0), scale(1, 1), rotation(0) {
+    instanceCount_++;
+}
+
+TransformComponent::TransformComponent(PosType x, PosType y) : position(x, y), scale(1, 1), rotation(0) {
+    instanceCount_++;
+}
+
+TransformComponent::TransformComponent(PosType x, PosType y, PosType scaleX, PosType scaleY, PosType rotation) :
+position(x, y), scale(scaleX, scaleY), rotation(rotation)
 {
-    position.zero();
-    velocity.zero();
-    scale = 1.0f;
-    w = h = 0;
+    assert(scale.x > 0.0 && scale.y > 0.0);
+    instanceCount_++;
 }
 
-TransformComponent::TransformComponent(PosType x, PosType y) : isStatic_(false){
-    velocity.zero();
-    position.set(x, y);
-    scale = 1.0f;
-    w = h = 0;
+TransformComponent::TransformComponent(const TransformComponent& other) :
+position(other.position), scale(other.scale), rotation(other.rotation) {
+    instanceCount_++;
 }
 
-TransformComponent::TransformComponent(PosType x, PosType y, float s) : isStatic_(false) {
-    assert(s > 0.0f);
-    velocity.zero();
-    position.set(x, y);
-    scale = s;
-    w = h = 0;
-}
-
-TransformComponent::TransformComponent(PosType x, PosType y, int w_, int h_, float s) {
-    assert(s > 0.0f);
-    assert(w_ > 0 and h_ > 0);
-    velocity.zero();
-    position.set(x, y);
-    scale = s;
-    w = w_;
-    h = h_;
-}
-
-void TransformComponent::init() {}
-
-void TransformComponent::setPos(PosType x, PosType y) {
-    position.set(x, y);
-}
-
-void TransformComponent::update() {
-    position += velocity;
+TransformComponent::~TransformComponent() {
+    instanceCount_--;
 }

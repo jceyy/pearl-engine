@@ -13,6 +13,7 @@ System::System() : signature_(0u), entityManager_(nullptr) {
 
 System::System(EntityManager* entityManager, ComponentSignature signature) : 
 signature_(signature), entityManager_(entityManager) {
+    assert(entityManager != nullptr);
     instanceCount_++;
 }
 
@@ -24,7 +25,7 @@ System::~System() {
 size_t SystemManager::instanceCount_ = 0;
 SystemManager::SystemManager(EntityManager& entityManager) : 
     systems_(vector<unique_ptr<System>>(0)),
-    systemArray_(array<System*, maxSystemID>{nullptr}),
+    systemArray_(array<System*, ECS::maxSystems>{nullptr}),
     registeredSystems_(0u),
     entityManager_(entityManager) {
     instanceCount_++;
@@ -43,17 +44,13 @@ ComponentSignature SystemManager::getSignature(size_t systemID) const {
 }
 
 void SystemManager::update() {
-    for (size_t i = 0; i < maxSystemID; ++i) {
-        if (registeredSystems_[i]) {
-            systemArray_[i]->update();
-        }
+    for (size_t i = 0; i < systems_.size(); ++i) {
+        systems_[i]->update();
     }
 }
 
 void SystemManager::draw() {
-    for (size_t i = 0; i < maxSystemID; ++i) {
-        if (registeredSystems_[i]) {
-            systemArray_[i]->draw();
-        }
+    for (size_t i = 0; i < systems_.size(); ++i) {
+        systems_[i]->draw();
     }
 }

@@ -61,6 +61,7 @@ target_sources(prl_library
     ECS/PhysicsComponent.cpp
     ECS/ButtonComponent.cpp
     ECS/FadeComponent.cpp
+    ECS/VelocityComponent.cpp
     Systems/Systems.cpp
     Systems/RenderSystem.cpp
     Systems/AnimationSystem.cpp

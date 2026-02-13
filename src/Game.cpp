@@ -25,6 +25,7 @@
 **/
 
 using namespace PRL;
+using namespace std;
 
 EntityManager entityManager;
 SDL_Event Game::event;
@@ -79,6 +80,9 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         }
         isRunning = true;
 
+        // Assign system manager to entity manager
+        entityManager.setSystemManager(systemManager);
+
         // Load objects
         assetManager->addTexture("terrain", "assets/terrain_ss.png");
         assetManager->addTexture("terrain3", "assets/terrain3.png");
@@ -95,7 +99,7 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         tileMap->loadMap("assets/map3.map", 10);
 
         player.addComponent<TransformComponent>(400, 320, 3);
-        player.addComponent<SpriteComponent>("");
+        player.addComponent<SpriteComponent>("player");
         // player.getComponent<SpriteComponent>().setTexture("player", 32, 32);
         player.addComponent<KeyboardController>();
         // player.addComponent<ColliderComponent>("player");
@@ -113,7 +117,6 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         entityManager.refresh();
         entityManager.update();
 
-        entityManager.setSystemManager(systemManager);
         systemManager->registerSystem<RenderSystem>();
 
     }

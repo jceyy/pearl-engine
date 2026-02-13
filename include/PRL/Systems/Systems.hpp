@@ -66,7 +66,16 @@ public:
         registeredSystems_[systemID] = true;
         return *c;
     }
-    
+
+    inline bool isSystemRegistered(std::size_t systemID) const noexcept {
+        return registeredSystems_[systemID];
+    }
+
+    template <typename T>
+    inline bool isSystemRegistered() const {
+        return registeredSystems_[SystemID::getSystemTypeID<T>()];
+    }
+
     ComponentSignature getSignature(std::size_t systemID) const;
 
     void update();
@@ -76,8 +85,8 @@ public:
 
 private:
     std::vector<std::unique_ptr<System>> systems_;
-    std::array<System*, maxSystemID> systemArray_;
-    std::bitset<maxSystemID> registeredSystems_;
+    std::array<System*, ECS::maxSystems> systemArray_;
+    std::bitset<ECS::maxSystems> registeredSystems_;
     EntityManager& entityManager_;
 
     static size_t instanceCount_;

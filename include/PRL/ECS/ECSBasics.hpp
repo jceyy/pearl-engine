@@ -5,12 +5,14 @@
 #include <algorithm>
 #include <assert.h>
 
-constexpr std::size_t maxComponents = 32;
-constexpr std::size_t maxGroups = 32;
-constexpr std::size_t maxSystemID = 32;
+namespace ECS {
+    constexpr std::size_t maxComponents = 32;
+    constexpr std::size_t maxGroups = 32;
+    constexpr std::size_t maxSystems = 32;
+}
 
 using EntityGroup = std::size_t;
-using EntityGroupBitSet = std::bitset<maxGroups>;
+using EntityGroupBitSet = std::bitset<ECS::maxGroups>;
 
 class ComponentID {
 public:
@@ -30,8 +32,8 @@ public:
 
     //! Static function to generate new component type IDs
     inline static ComponentID getNewComponentTypeID(){
-        static ComponentID lastID = 1u; // Start from 1 to avoid using 0 as a valid ID (0 can be used to represent "no component")
-        assert(lastID < maxComponents);
+        static ComponentID lastID = 0u;
+        assert(lastID < ECS::maxComponents);
         return lastID++;
     }
 
@@ -40,6 +42,8 @@ public:
         static ComponentID typeID = ComponentID::getNewComponentTypeID();
         return typeID;
     }
+
+    constexpr static std::size_t maxComponentID = ECS::maxComponents;
 
 private:
     std::size_t id_;
@@ -61,19 +65,19 @@ public:
     inline bool none() const { return bitset_.none(); }
     
     inline void set(ComponentID id) {
-        assert(id < maxComponents);
+        assert(id < ECS::maxComponents);
         bitset_.set(static_cast<size_t>(id));
     }
 
-    inline const std::bitset<maxComponents>& bitset() const { return bitset_; }
+    inline const std::bitset<ECS::maxComponents>& bitset() const { return bitset_; }
 
     inline bool operator[] (ComponentID id) const { return bitset_[static_cast<size_t>(id)]; }
-    inline std::bitset<maxComponents>::reference operator[] (ComponentID id) { 
+    inline std::bitset<ECS::maxComponents>::reference operator[] (ComponentID id) { 
         return bitset_[static_cast<size_t>(id)];
     }
     
     //! Assignment operator to set the signature from a bitset
-    inline ComponentSignature& operator=(const std::bitset<maxComponents>& bitset) {
+    inline ComponentSignature& operator=(const std::bitset<ECS::maxComponents>& bitset) {
         this->bitset_ = bitset;
         return *this;
     }
@@ -107,7 +111,7 @@ public:
    
 private:
     //! Bitset representing the presence of components in an entity or the requirements of a system
-    std::bitset<maxComponents> bitset_; 
+    std::bitset<ECS::maxComponents> bitset_; 
 };
 
 class System;
@@ -139,7 +143,7 @@ public:
     //! Static function to generate new system type IDs
     template<typename T> static inline std::size_t getNewSystemTypeID() {
         static_assert(std::is_base_of<System, T>::value, "T must inherit from System");
-        static SystemID lastID = 1u; // Start from 1 to avoid using 0 as a valid ID (0 can be used to represent "no component")
+        static SystemID lastID = 0u;
         assert(lastID < maxSystemID);
         return lastID++;
     }
@@ -152,7 +156,7 @@ public:
     }
 
     //! Maximum number of systems that can be registered
-    constexpr static std::size_t maxSystemID = maxSystemID;
+    constexpr static std::size_t maxSystemID = ECS::maxSystems;
 
 private:
     std::size_t id_;
