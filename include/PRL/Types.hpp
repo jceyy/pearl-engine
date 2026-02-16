@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 
 using PosType = float;
-// using PRL_Rect = SDL_FRect;
+using PRL_Rect = SDL_FRect; // to be replaced ?
 
 
 #include "Vector2D.hpp"
@@ -27,5 +27,8 @@ public:
 private:
     static size_t instanceCount_;
 };
+
+using TextureID = std::string;
+using AnimationID = std::string;
 
 #endif // TYPES_HPP

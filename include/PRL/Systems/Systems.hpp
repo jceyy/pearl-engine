@@ -6,6 +6,7 @@
 #include <array>
 #include "Types.hpp"
 #include "ECS/ECSBasics.hpp"
+#include "AssetManager.hpp"
 #include "Logging.hpp"
 
 class EntityManager;
@@ -14,7 +15,7 @@ class EntityManager;
 class System : public PRLObject {
 public:
     System();
-    System(EntityManager* entityManager, ComponentSignature signature = ComponentSignature(0u));
+    System(ComponentSignature signature = ComponentSignature(0u));
     System(const System& other) = delete;
     System(System&& other) noexcept = delete;
     System& operator=(const System& other) = delete;
@@ -32,6 +33,7 @@ public:
 protected:
     ComponentSignature signature_; //!< Component signature of entities updated by this system
     EntityManager* entityManager_; //!< Access to entities matching this system
+    AssetManager* assetManager_;   //!< Access to assets
 
 private:
     static size_t instanceCount_;
@@ -43,7 +45,7 @@ private:
 class SystemManager : public PRLObject {
 public:
     SystemManager() = delete;
-    SystemManager(EntityManager& entityManager);
+    SystemManager(EntityManager& entityManager, AssetManager& assetManager);
     SystemManager(const SystemManager& other) = delete;
     SystemManager(SystemManager&& other) noexcept = delete;
     SystemManager& operator=(const SystemManager& other) = delete;
@@ -52,18 +54,21 @@ public:
 
     template <typename T, typename... TArgs>
     T& registerSystem(TArgs&&... mArgs) { 
-        std::size_t systemID = SystemID::getSystemTypeID<T>(); 
-        if (systemArray_[systemID] != nullptr) {
+        const std::size_t systemID = SystemID::getSystemTypeID<T>(); 
+        if (registeredSystems_[systemID]) {
             // System already registered, return existing
+            std::cout << "[DEBUG] System with ID " << systemID << " already registered, returning existing instance\n";
             return *static_cast<T*>(systemArray_[systemID]);
         }
         T* c(new T(std::forward<TArgs>(mArgs)...));
         c->entityManager_ = &entityManager_;
+        c->assetManager_ = &assetManager_;
         std::unique_ptr<System> uPtr { c };
         systems_.emplace_back(std::move(uPtr)); 
 
         systemArray_[systemID] = c;
         registeredSystems_[systemID] = true;
+        std::cout << "[DEBUG] Registered system with ID " << systemID << "\n";
         return *c;
     }
 
@@ -88,6 +93,7 @@ private:
     std::array<System*, ECS::maxSystems> systemArray_;
     std::bitset<ECS::maxSystems> registeredSystems_;
     EntityManager& entityManager_;
+    AssetManager& assetManager_;
 
     static size_t instanceCount_;
 };

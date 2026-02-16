@@ -38,7 +38,7 @@ SDL_Renderer* Game::renderer = nullptr;
 bool Game::isRunning = false;
 SDL_FRect Game::camera = {0, 0, 800, 640};
 AssetManager* Game::assetManager = new AssetManager(&entityManager);
-SystemManager* Game::systemManager = new SystemManager(entityManager);
+SystemManager* Game::systemManager = new SystemManager(entityManager, *assetManager);
 
 size_t Game::instanceCount_ = 0;
 Game::Game() {
@@ -117,8 +117,8 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         entityManager.refresh();
         entityManager.update();
 
+        systemManager->registerSystem<AnimationSystem>();
         systemManager->registerSystem<RenderSystem>();
-
     }
     else{
         isRunning = false;
@@ -143,6 +143,9 @@ void Game::handleEvents() {
             assetManager->createProjectile(player.getComponent<TransformComponent>().position - Vector2D(33, 0),
                                             Vector2D(-2, 0), 200, 2, "projectile");
 
+        }
+        else if (event.key.keysym.sym == SDLK_ESCAPE){
+            isRunning = false;
         }
         break;
 

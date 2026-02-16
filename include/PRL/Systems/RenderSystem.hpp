@@ -7,12 +7,11 @@
 
 class RenderSystem : public System {
 public:
-    RenderSystem();
-    RenderSystem(EntityManager* entityManager, ComponentSignature signature = 
+    RenderSystem(ComponentSignature signature = 
         ComponentSignature::create<SpriteComponent, TransformComponent>());
     ~RenderSystem();
     
-    void update() override;
+    void update() override {};
     void draw() override;
 
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }

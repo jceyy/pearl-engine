@@ -1,6 +1,7 @@
+#include <algorithm>
 #include "Systems/Systems.hpp"
 #include "ECS/ECS.hpp"
-#include <algorithm>
+#include "AssetManager.hpp"
 
 using namespace std;
 
@@ -11,9 +12,8 @@ System::System() : signature_(0u), entityManager_(nullptr) {
     instanceCount_++;
 }
 
-System::System(EntityManager* entityManager, ComponentSignature signature) : 
-signature_(signature), entityManager_(entityManager) {
-    assert(entityManager != nullptr);
+System::System(ComponentSignature signature) : 
+signature_(signature) {
     instanceCount_++;
 }
 
@@ -23,11 +23,12 @@ System::~System() {
 
 // SystemManager implementation //
 size_t SystemManager::instanceCount_ = 0;
-SystemManager::SystemManager(EntityManager& entityManager) : 
+SystemManager::SystemManager(EntityManager& entityManager, AssetManager& assetManager) : 
     systems_(vector<unique_ptr<System>>(0)),
     systemArray_(array<System*, ECS::maxSystems>{nullptr}),
     registeredSystems_(0u),
-    entityManager_(entityManager) {
+    entityManager_(entityManager),
+    assetManager_(assetManager) {
     instanceCount_++;
 }
 
@@ -44,12 +45,14 @@ ComponentSignature SystemManager::getSignature(size_t systemID) const {
 }
 
 void SystemManager::update() {
+    cout << "[DEBUG] SystemManager updating " << systems_.size() << " systems\n";
     for (size_t i = 0; i < systems_.size(); ++i) {
         systems_[i]->update();
     }
 }
 
 void SystemManager::draw() {
+    cout << "[DEBUG] SystemManager drawing " << systems_.size() << " systems\n";
     for (size_t i = 0; i < systems_.size(); ++i) {
         systems_[i]->draw();
     }

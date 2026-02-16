@@ -133,18 +133,18 @@ std::vector<Entity*>& EntityManager::getEntitiesForSystem(std::size_t systemID) 
 }
 
 void EntityManager::entitySignatureChanged(Entity* entity, ComponentSignature entitySignature) {
-    cout << "[DEBUG] EntityManager::entitySignatureChanged called" << endl;
+    // cout << "[DEBUG] EntityManager::entitySignatureChanged called" << endl;
     if (systemManager_ == nullptr) {
         PRL::Logging::log("System manager not set in EntityManager", "EntityManager::entitySignatureChanged()");
         return;
     }
-    cout << "[DEBUG] Entity " << entity << " signature changed. Matches RenderSystem ? " 
-         << ComponentSignature::create<SpriteComponent>().matches(entitySignature) << endl;
+    // cout << "[DEBUG] Entity " << entity << " signature changed. Matches RenderSystem ? " 
+        //  << ComponentSignature::create<SpriteComponent>().matches(entitySignature) << endl;
 
     // Update entity presence in each system's entity list
     for (std::size_t systemID = 0; systemID < SystemID::maxSystemID; ++systemID) {
         ComponentSignature systemSignature = systemManager_->getSignature(systemID);
-        cout << "[DEBUG] Checking system " << systemID << " with signature " << systemSignature.bitset() << " against entity signature " << entitySignature.bitset() << endl;
+        // cout << "[DEBUG] Checking system " << systemID << " with signature " << systemSignature.bitset() << " against entity signature " << entitySignature.bitset() << endl;
         if (systemSignature.none()) { 
             continue;
         }

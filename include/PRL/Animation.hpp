@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 
 
+/*
 class Animation {
 public:
     Animation();
@@ -18,6 +19,6 @@ private:
     std::vector<SDL_Texture*> animTextures_;
     size_t frames;
     float fps;
-};
+};*/
 
 #endif // ANIMATION_HPP

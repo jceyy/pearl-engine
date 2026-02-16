@@ -4,6 +4,7 @@
 #include <bitset>
 #include <algorithm>
 #include <assert.h>
+#include "Defaults.hpp"
 
 namespace ECS {
     constexpr std::size_t maxComponents = 32;

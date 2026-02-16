@@ -2,6 +2,7 @@
 #include "ECS/TransformComponent.hpp"
 #include "ECS/SpriteComponent.hpp"
 #include "TextureManager.hpp"
+#include "Game.hpp"
 
 TileComponent::TileComponent() {
     texture_ = nullptr;
@@ -35,7 +36,7 @@ void TileComponent::update(){
 
 void TileComponent::init(){
     if (texture_ != nullptr) SDL_DestroyTexture(texture_);
-    texture_ = Game::assetManager->getTexture(textureID_);
+    texture_ = Game::assetManager->getTexture(textureID_).texture;
 }
 
 void TileComponent::draw(){

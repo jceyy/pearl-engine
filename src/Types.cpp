@@ -7,6 +7,7 @@ PRLObject::PRLObject() {
 }
 
 PRLObject::PRLObject(const PRLObject& other) {
+    *this = other; 
     instanceCount_++;
 }
 

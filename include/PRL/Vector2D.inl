@@ -2,6 +2,7 @@
 #define VECTOR_2D_INL
 
 #include "Vector2D.hpp"
+#include <cmath>
 
 inline PosType Vector2D::norm() const {
     return sqrt(x*x + y*y);

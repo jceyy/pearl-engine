@@ -18,10 +18,10 @@ Vector2D PhysicsComponent::velocity() const {
 
 void PhysicsComponent::computeAcceleration_() {
     acceleration_ = PhysicsManager::globalGravity;
-    transform_->velocity = velocity();
+    // transform_->velocity = velocity();
 
-    if (drag != 0)
-        acceleration_ -= drag / mass * transform_->velocity;
+    // if (drag != 0)
+    //     acceleration_ -= drag / mass * transform_->velocity;
 }
 
 void PhysicsComponent::init() {

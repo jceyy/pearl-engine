@@ -10,7 +10,7 @@ public:
     TransformComponent();
     TransformComponent(PosType x, PosType y);
     TransformComponent(PosType x, PosType y, PosType scaleX = 1.0, 
-        PosType scaleY = 1.0, PosType rotation = 0.0);
+        PosType scaleY = 1.0, double rotation = 0.0);
     TransformComponent(const TransformComponent& other);
     TransformComponent(TransformComponent&& other) noexcept = default;
     ~TransformComponent();
@@ -19,7 +19,7 @@ public:
 
     Vector2D position;
     Vector2D scale;
-    PosType rotation;
+    double rotation;
 
     void init() override {}
     inline void setPos(PosType x, PosType y) noexcept { position.set(x, y); };

@@ -2,42 +2,33 @@
 #define _SPRITE_COMPONENT_HPP_INCLUDED
 
 #include <iostream>
-#include <string>
-#include <map>
 #include <SDL2/SDL.h>
 #include "Components.hpp"
-#include "../Animation.hpp"
 
 class SpriteComponent : public Component {
 public:
     SpriteComponent();
+    SpriteComponent(const TextureID& textureID);
     SpriteComponent(const SpriteComponent& other);
-    SpriteComponent(SpriteComponent&& other) noexcept;
-    SpriteComponent(const std::string& textureID);
     ~SpriteComponent();
-    SpriteComponent& operator=(const SpriteComponent& other);
-    SpriteComponent& operator=(SpriteComponent&& other) noexcept;
+    SpriteComponent(SpriteComponent&& other) noexcept = default;
+    SpriteComponent& operator=(const SpriteComponent& other) = default;
+    SpriteComponent& operator=(SpriteComponent&& other) noexcept = default;
 
-    void init() override;
+    void init() override {}; // to be removed !
     void update() override {}; // to be removed !
     void draw() override {}; // to be removed !
-    void setTexture(const std::string& textureID);
 
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }
     
+    TextureID textureID;
+    size_t layer;
+    size_t region;
     SDL_RendererFlip spriteFlip;
+    bool visible;
 
 private:
-    void updateRect_(int w, int h);
-
-    std::string textureID_;
-    SDL_Texture* texture_;
-    SDL_Rect srcRect_;
-    SDL_FRect dstRect_;
-
     static size_t instanceCount_;
-
-    friend class RenderSystem;
 };
 
 #endif // _SPRITE_COMPONENT_HPP_INCLUDED

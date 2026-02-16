@@ -13,7 +13,7 @@ ProjectileComponent::~ProjectileComponent() {}
 
 void ProjectileComponent::init(){
     transform_ = &entity->getComponent<TransformComponent>();
-    transform_->velocity = velocity_;
+    // transform_->velocity = velocity_;
 }
 
 

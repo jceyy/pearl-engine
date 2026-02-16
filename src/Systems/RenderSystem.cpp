@@ -2,14 +2,9 @@
 #include "TextureManager.hpp"
 
 size_t RenderSystem::instanceCount_ = 0;
-RenderSystem::RenderSystem() : System() {
-    signature_ = ComponentSignature::create<SpriteComponent, TransformComponent>();
-    instanceCount_++;
-}
 
-RenderSystem::RenderSystem(EntityManager* entityManager, ComponentSignature signature) : 
-System(entityManager, signature) {
-    assert(entityManager != nullptr);
+RenderSystem::RenderSystem(ComponentSignature signature) : 
+System(signature) {
     instanceCount_++;
 }
 
@@ -17,27 +12,37 @@ RenderSystem::~RenderSystem() {
     instanceCount_--;
 }
 
-void RenderSystem::update() {
-    return;
-}
-
 void RenderSystem::draw() {
+    std::cout << "[DEBUG] RenderSystem drawing entities\n";
     static int frameCount = 0;
     
     // Get entities from EntityManager that match this system's signature
     auto& entities = entityManager_->getEntitiesForSystem(SystemID::getSystemTypeID<RenderSystem>());
-    // std::cout << "[DEBUG] frame #" << frameCount++ << " : RenderSystem drawing " << entities.size() << " entities\n";
+    if (true)
+        std::cout << "[DEBUG] frame #" << frameCount++ << " : RenderSystem drawing " << entities.size() << " entities\n";
+    
     SDL_FRect dst;
+    SDL_Rect src;
     for (size_t i = 0; i < entities.size(); ++i) {
         Entity* entity = entities[i];
+        if (!entity->getComponent<SpriteComponent>().visible) continue;
+
         dst.x = entity->getComponent<TransformComponent>().position.x;
         dst.y = entity->getComponent<TransformComponent>().position.y;
-        dst.w = entity->getComponent<SpriteComponent>().dstRect_.w * entity->getComponent<TransformComponent>().scale.x;
-        dst.h = entity->getComponent<SpriteComponent>().dstRect_.h * entity->getComponent<TransformComponent>().scale.y;
+        TextureID textureID = entity->getComponent<SpriteComponent>().textureID;
+        const TextureAsset& textureAsset = Game::assetManager->getTexture(textureID);
+
+        Vector2D nativeSpriteSize = textureAsset.nativeSpriteSize;
+        Vector2D scale = entity->getComponent<TransformComponent>().scale;
+        dst.w = nativeSpriteSize.x * scale.x;
+        dst.h = nativeSpriteSize.y * scale.y;
+        size_t regionIndex = entity->getComponent<SpriteComponent>().region;
+        src = { textureAsset.regions[regionIndex].x, textureAsset.regions[regionIndex].y, 
+                textureAsset.regions[regionIndex].w, textureAsset.regions[regionIndex].h };
         
         TextureManager::Draw(
-            entity->getComponent<SpriteComponent>().texture_, 
-            &entity->getComponent<SpriteComponent>().srcRect_, 
-            &dst, entity->getComponent<SpriteComponent>().spriteFlip_);
+            textureAsset.texture, 
+            &src, 
+            &dst, entity->getComponent<SpriteComponent>().spriteFlip, entity->getComponent<TransformComponent>().rotation);
     }
 }
