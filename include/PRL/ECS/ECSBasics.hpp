@@ -31,22 +31,20 @@ public:
     inline std::size_t operator++() { return ++id_; }
     inline std::size_t operator++(int) { return id_++; }
 
+    
+    //! Static function to get the component type ID for a specific type
+    template<typename T> inline static ComponentID getComponentTypeID() noexcept{
+        static ComponentID typeID = ComponentID::getNewComponentTypeID_();
+        return typeID;
+    }
+    
+private:
     //! Static function to generate new component type IDs
-    inline static ComponentID getNewComponentTypeID(){
+    inline static ComponentID getNewComponentTypeID_(){
         static ComponentID lastID = 0u;
         assert(lastID < ECS::maxComponents);
         return lastID++;
     }
-
-    //! Static function to get the component type ID for a specific type
-    template<typename T> inline static ComponentID getComponentTypeID() noexcept{
-        static ComponentID typeID = ComponentID::getNewComponentTypeID();
-        return typeID;
-    }
-
-    constexpr static std::size_t maxComponentID = ECS::maxComponents;
-
-private:
     std::size_t id_;
 };
 
@@ -141,25 +139,20 @@ public:
         return *this;
     }
 
-    //! Static function to generate new system type IDs
-    template<typename T> static inline std::size_t getNewSystemTypeID() {
-        static_assert(std::is_base_of<System, T>::value, "T must inherit from System");
-        static SystemID lastID = 0u;
-        assert(lastID < maxSystemID);
-        return lastID++;
-    }
-
     //! Get the system type ID for a specific type
     template<typename T> static inline std::size_t getSystemTypeID() {
         static_assert(std::is_base_of<System, T>::value, "T must inherit from System");
-        static std::size_t typeID = getNewSystemTypeID<T>();
+        static std::size_t typeID = getNewSystemTypeID_();
         return typeID;
     }
-
-    //! Maximum number of systems that can be registered
-    constexpr static std::size_t maxSystemID = ECS::maxSystems;
-
+    
 private:
+    //! Static function to generate new system type IDs
+    static inline std::size_t getNewSystemTypeID_() {
+        static SystemID lastID = 0u;
+        assert(lastID <= maxSystemID);
+        return lastID++;
+    }
     std::size_t id_;
 };
 

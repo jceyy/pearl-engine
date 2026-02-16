@@ -17,20 +17,30 @@ class Entity;
 
 class Component : public PRLObject {
 public:
-    // To implement :
-    Component() = default;
+    Component();
     Component(const Component&) = delete;
     Component& operator=(const Component&) = delete;
     Component(Component&&) = delete;
     Component& operator=(Component&&) = delete;
-    virtual ~Component() {};
+    virtual ~Component() = 0;
 
     
-    virtual void init() {};
+    virtual void init() {}; // to be deprecated
     virtual void update() {}; // to be deprecated
     virtual void draw() {}; // to be deprecated
-    
-    Entity* entity; // not protected?
+
+    //! Maximum number of Component that can be registered (proxy for ECS::maxComponents)
+    constexpr static std::size_t maxComponents = ECS::maxComponents;
+
+    inline static size_t getInstanceCount() noexcept { return instanceCount_; }
+
+protected:
+    Entity* entity;
+
+private:
+    static size_t instanceCount_; //!< How many Component instances currently exist
+
+    friend class Entity;
 };
 
 
@@ -133,12 +143,5 @@ private:
 
     static size_t instanceCount_;
 };
-
-
-
-
-// Rules for incompatible components :
-// - KeyboardComponent and ControllerComponent ?
-// - ...
 
 #endif // ENTITY_COMPONENT_SYSTEM_HPP

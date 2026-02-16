@@ -21,7 +21,6 @@ public:
     Vector2D scale;
     double rotation;
 
-    void init() override {}
     inline void setPos(PosType x, PosType y) noexcept { position.set(x, y); };
 
     inline static size_t getInstanceCount() noexcept { return instanceCount_; }

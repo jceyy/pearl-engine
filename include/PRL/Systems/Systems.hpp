@@ -30,6 +30,9 @@ public:
     inline static size_t getInstanceCount() noexcept { return instanceCount_; }
     inline ComponentSignature getSignature() const noexcept { return signature_; }
 
+    //! Maximum number of System that can be registered (proxy for ECS::maxSystems)
+    constexpr static std::size_t maxSystems = ECS::maxSystems;
+
 protected:
     ComponentSignature signature_; //!< Component signature of entities updated by this system
     EntityManager* entityManager_; //!< Access to entities matching this system

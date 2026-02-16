@@ -34,8 +34,8 @@ void RenderSystem::draw() {
 
         Vector2D nativeSpriteSize = textureAsset.nativeSpriteSize;
         Vector2D scale = entity->getComponent<TransformComponent>().scale;
-        dst.w = nativeSpriteSize.x * scale.x;
-        dst.h = nativeSpriteSize.y * scale.y;
+        dst.w = nativeSpriteSize.x * std::abs(scale.x);
+        dst.h = nativeSpriteSize.y * std::abs(scale.y);
         size_t regionIndex = entity->getComponent<SpriteComponent>().region;
         src = { textureAsset.regions[regionIndex].x, textureAsset.regions[regionIndex].y, 
                 textureAsset.regions[regionIndex].w, textureAsset.regions[regionIndex].h };
