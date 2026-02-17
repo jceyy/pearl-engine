@@ -1,3 +1,31 @@
-# For each line, Wsprite Hsprite Nsprites [fps looping]
+# For each line, Wsprite Hsprite Nsprites [fps looping]  --- old format, to be improved
 32 32 3 8.0 0
 32 32 8 8.0 0
+
+# example.dat
+
+[texture]
+native_resolution 320 180
+filter nearest
+
+
+[sprites]
+default_size 1.0 1.0
+default_pivot 0.5 1.0
+
+# <name>         <x> <y> <w> <h>  size <wx> <wy> pivot <px> <py>
+tree_big         0   0   128 256  size 2.0  4.0  pivot 0.5  1.0
+rock_small       128 0   32  32   size 1.0  1.0  pivot 0.5  1.0
+flower           160 0   16  16   size 0.5  0.5  pivot 0.5  1.0
+
+
+[animations]
+# <name>   fps <value> looping <0|1> frames <sprite_name> <sprite_name> ...
+walk       fps 8       looping 1     frames hero_0 hero_1 hero_2 hero_3
+idle       fps 2       looping 1     frames hero_idle
+
+
+[tileset]
+tile_size 32 32
+tile_count 47
+
