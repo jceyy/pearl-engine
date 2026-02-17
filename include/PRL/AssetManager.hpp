@@ -10,12 +10,14 @@
 #include "ECS/ECS.hpp"
 
 
-class SpriteRegion {
+class SpriteRegion : public SDL_Rect {
 public:
-    SpriteRegion() : x(0), y(0), w(0), h(0) {}
-    SpriteRegion(int x, int y, int w, int h) : x(x), y(y), w(w), h(h) {}
+    SpriteRegion() : SDL_Rect{0, 0, 0, 0} {
+        // x = y = w = h = 0;
+    }
+    SpriteRegion(int x, int y, int w, int h) : SDL_Rect{x, y, w, h} {}
     
-    int x, y, w, h;   // in texture pixels
+    // int x, y, w, h;   // in texture pixels
 };
 
 
