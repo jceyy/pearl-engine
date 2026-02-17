@@ -91,14 +91,37 @@ public:
     }
 
     template <typename T> inline T& getComponent() const{
+        assert(hasComponent<T>() && "Entity does not have this component");
         auto ptr(componentArray_[static_cast<size_t>(ComponentID::getComponentTypeID<T>())]);
         return *static_cast<T*>(ptr);
+    }
+
+    template <typename T> inline void removeComponent() {
+        constexpr std::size_t id = ComponentID::getComponentTypeID<T>();
+        if (!hasComponent<T>()) return; // Component not present, nothing to remove
+
+        // Find and erase owning unique_ptr
+        auto it = std::find_if(
+            components_.begin(),
+            components_.end(),
+            [this](const std::unique_ptr<Component>& ptr) {
+                return ptr.get() == this->componentArray_[id];
+            }
+        );
+
+        if (it != components_.end()) {
+            components_.erase(it);   // deletes component
+        }
+
+        componentArray_[id] = nullptr;
+        componentSignature_[id] = false;
+        notifySignatureChange_();
     }
 
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }
 
 private:
-    bool isActive_ = false;
+    bool isActive_;
     std::vector<std::unique_ptr<Component>> components_;
     std::array<Component*, ECS::maxComponents> componentArray_;
     ComponentSignature componentSignature_;

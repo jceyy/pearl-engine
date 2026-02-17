@@ -150,7 +150,7 @@ private:
     //! Static function to generate new system type IDs
     static inline std::size_t getNewSystemTypeID_() {
         static SystemID lastID = 0u;
-        assert(lastID <= maxSystemID);
+        assert(lastID <= ECS::maxSystems);
         return lastID++;
     }
     std::size_t id_;

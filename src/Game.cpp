@@ -83,51 +83,53 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         // Assign system manager to entity manager
         entityManager.setSystemManager(systemManager);
 
+        // Register systems
+        systemManager->registerSystem<AnimationSystem>();
+        systemManager->registerSystem<RenderSystem>();
+
         // Load objects
-        assetManager->addTexture("terrain", "assets/terrain_ss.png");
-        assetManager->addTexture("terrain3", "assets/terrain3.png");
+        // assetManager->addTexture("terrain", "assets/terrain_ss.png");
+        // assetManager->addTexture("terrain3", "assets/terrain3.png");
         assetManager->addTexture("player", "assets/player_anims.png");
-        assetManager->addTexture("projectile", "assets/proj.png");
-        assetManager->addTexture("circle", "assets/circle.png");
+        // assetManager->addTexture("projectile", "assets/proj.png");
+        // assetManager->addTexture("circle", "assets/circle.png");
         assetManager->addFont("baseFont", "assets/font.ttf", 16);
 
         // assetManager->createProjectile(Vector2D(500, 500), Vector2D(2, 0), 500, 2, "projectile");
 
         // tileMap = new TileMap("terrain", 2);
         // tileMap->loadMap("assets/map2.map", 10);
-        tileMap = new TileMap("terrain3", 2);
-        tileMap->loadMap("assets/map3.map", 10);
 
-        player.addComponent<TransformComponent>(400, 320, 3);
+        // tileMap = new TileMap("terrain3", 2);
+        // tileMap->loadMap("assets/map3.map", 10);
+
+        player.addComponent<TransformComponent>(250, 300, 4.0, 4.0, -45);
         player.addComponent<SpriteComponent>("player");
-        player.addComponent<KeyboardController>();
+        // player.addComponent<KeyboardController>();
         // player.addComponent<ColliderComponent>("player");
         player.addGroup(groupPlayers);
 
-        ball1.addComponent<TransformComponent>(600, 400, 1);
-        ball1.addComponent<SpriteComponent>("test");
+        // ball1.addComponent<TransformComponent>(600, 400, 1);
+        // ball1.addComponent<SpriteComponent>("test");
         // ball1.getComponent<SpriteComponent>().setTexture("circle", 16, 16);
         // ball1.addComponent<PhysicsComponent>();
-        ball1.addGroup(groupPlayers);
+        // ball1.addGroup(groupPlayers);
 
-        SDL_Color colorWhite = {255, 255, 255, 255};
-        label.addComponent<UILabel>(10, 10, "Test String", "baseFont", colorWhite);
+        // SDL_Color colorWhite = {255, 255, 255, 255};
+        // label.addComponent<UILabel>(10, 10, "Test String", "baseFont", colorWhite);
 
         entityManager.refresh();
         entityManager.update();
-
-        systemManager->registerSystem<AnimationSystem>();
-        systemManager->registerSystem<RenderSystem>();
     }
-    else{
+    else {
         isRunning = false;
     }
 }
 
-auto& tiles(entityManager.getGroup(Game::groupMap));
-auto& colliders(entityManager.getGroup(Game::groupColliders));
-auto& players(entityManager.getGroup(Game::groupPlayers));
-auto& projectiles(entityManager.getGroup(Game::groupProjectiles));
+// auto& tiles(entityManager.getGroup(Game::groupMap));
+// auto& colliders(entityManager.getGroup(Game::groupColliders));
+// auto& players(entityManager.getGroup(Game::groupPlayers));
+// auto& projectiles(entityManager.getGroup(Game::groupProjectiles));
 
 
 void Game::handleEvents() {
@@ -157,19 +159,20 @@ void Game::handleEvents() {
 void Game::render() {
     SDL_RenderClear(renderer);
 
-    for (auto& t : tiles){
-        t->draw();
-    }
-    for (auto& c : colliders){
-        c->draw();
-    }
-    for (auto& p : players){
-        p->draw();
-    }
-    for (auto& p : projectiles){
-        p->draw();
-    }
-    label.draw();
+    // for (auto& t : tiles){
+    //     t->draw();
+    // }
+    // for (auto& c : colliders){
+    //     c->draw();
+    // }
+    // for (auto& p : players){
+    //     p->draw();
+    // }
+    // for (auto& p : projectiles){
+    //     p->draw();
+    // }
+    // label.draw();
+
     systemManager->draw();
     SDL_RenderPresent(renderer);
 }
@@ -182,7 +185,8 @@ void Game::update() {
     
     std::stringstream ss;
     ss << "Player position: " << playerPos;
-    label.getComponent<UILabel>().setLabelText(ss.str(), "baseFont");
+    if (label.hasComponent<UILabel>())
+        label.getComponent<UILabel>().setLabelText(ss.str(), "baseFont");
 
     entityManager.refresh();
     entityManager.update();

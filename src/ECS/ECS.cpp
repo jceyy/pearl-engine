@@ -3,6 +3,9 @@
 #include "Logging.hpp"
 #include "ECS/HumanPlayerComponent.hpp"
 #include "ECS/SpriteComponent.hpp" // temporary for debug purposes
+#include "ECS/ECSBasics.hpp"
+#include "Systems/RenderSystem.hpp"
+#include "Systems/AnimationSystem.hpp"
 
 // Static instance count initializations
 size_t HumanPlayerComponent::instanceCount_ = 0;
@@ -96,7 +99,7 @@ void EntityManager::draw() {
     for (auto& e : entities_) e->draw();
 }
 
-void EntityManager::refresh() {
+void EntityManager::refresh() {    
     // remove unactive entities from groups
     for(auto i(0u); i < ECS::maxGroups; ++i){
         auto& v(groupedEntities_[i]);
@@ -145,21 +148,18 @@ std::vector<Entity*>& EntityManager::getEntitiesForSystem(std::size_t systemID) 
 }
 
 void EntityManager::entitySignatureChanged(Entity* entity, ComponentSignature entitySignature) {
-    // cout << "[DEBUG] EntityManager::entitySignatureChanged called" << endl;
     if (systemManager_ == nullptr) {
         PRL::Logging::err("System manager not set in EntityManager", "EntityManager::entitySignatureChanged()");
         return;
     }
-    // cout << "[DEBUG] Entity " << entity << " signature changed. Matches RenderSystem ? " 
-        //  << ComponentSignature::create<SpriteComponent>().matches(entitySignature) << endl;
 
     // Update entity presence in each system's entity list
     for (std::size_t systemID = 0; systemID < ECS::maxSystems; ++systemID) {
-        if (!systemManager_->isSystemRegistered(systemID)) 
+        if (!systemManager_->isSystemRegistered(systemID)) {
             continue;
-        
-            ComponentSignature systemSignature = systemManager_->getSignature(systemID);
-        // cout << "[DEBUG] Checking system " << systemID << " with signature " << systemSignature.bitset() << " against entity signature " << entitySignature.bitset() << endl;
+        }
+
+        ComponentSignature systemSignature = systemManager_->getSignature(systemID);
         if (systemSignature.none()) { 
             continue;
         }
@@ -176,7 +176,6 @@ void EntityManager::entitySignatureChanged(Entity* entity, ComponentSignature en
         if (matches && !inList) {
             // Entity now matches, add it
             systemEntities.push_back(entity);
-            cout << "[DEBUG] Entity " << entity << " added to system " << systemID << " entity list\n";
         } else if (!matches && inList) {
             // Entity no longer matches, remove it
             systemEntities.erase(it);

@@ -1,5 +1,5 @@
-#ifndef TYPES_HPP
-#define TYPES_HPP
+#ifndef TYPES_HPP_INCLUDED
+#define TYPES_HPP_INCLUDED
 
 #include <limits>
 #include <SDL2/SDL.h>
@@ -31,4 +31,4 @@ private:
 using TextureID = std::string;
 using AnimationID = std::string;
 
-#endif // TYPES_HPP
+#endif // TYPES_HPP_INCLUDED

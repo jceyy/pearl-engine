@@ -22,8 +22,25 @@ public:
 class TextureAsset {
 public:
     TextureAsset() : texture(nullptr), nativeSpriteSize(0, 0) {}
-    TextureAsset(SDL_Texture* texture, const std::vector<SpriteRegion>& regions, const Vector2D& nativeSpriteSize)
-        : texture(texture), regions(regions), nativeSpriteSize(nativeSpriteSize) {}
+    TextureAsset(SDL_Texture* texture, const std::vector<SpriteRegion>& regions, const Vector2D& nativeSpriteSize) :
+    texture(texture), regions(regions), nativeSpriteSize(nativeSpriteSize) {}
+    TextureAsset(const TextureAsset&) = delete;
+    TextureAsset(TextureAsset&& other) noexcept : 
+    texture(other.texture), regions(std::move(other.regions)), nativeSpriteSize(other.nativeSpriteSize) {
+        other.texture = nullptr; // prevent destructor from freeing the texture
+    }
+    TextureAsset& operator=(const TextureAsset&) = delete;
+    TextureAsset& operator=(TextureAsset&& other) noexcept {
+        if (this != &other) {
+            if (texture) SDL_DestroyTexture(texture); // free existing texture
+            texture = other.texture;
+            regions = std::move(other.regions);
+            nativeSpriteSize = other.nativeSpriteSize;
+            other.texture = nullptr; // prevent destructor from freeing the texture
+        }
+        return *this;
+    }
+
     ~TextureAsset() {
         if (texture) SDL_DestroyTexture(texture);
     }
@@ -72,6 +89,8 @@ public:
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }
 
 private:
+    static std::vector<SpriteRegion> loadSpriteRegions_(const std::string& fileName);
+
     EntityManager* entityManager_;
     // std::map<std::string, SDL_Texture*> textures_;  // Add string_paths to be able to reload
     // std::map<std::string, std::pair<int, int>> texturesSize_;

@@ -2,11 +2,13 @@
 #include "TextureManager.hpp"
 #include "Game.hpp"
 #include "Logging.hpp"
+#include "Utils.hpp"
 
 using namespace PRL;
 
 SDL_Texture* TextureManager::loadTexture(const std::string& fileName){
     int w(0), h(0);
+    assert(false && "TextureManager::loadTexture(const std::string& fileName) should not be called directly, it should be called with the width and height reference parameters to avoid redundant loading of the texture just to get its size");
     return loadTexture(fileName, w, h);
 }
 
@@ -14,12 +16,13 @@ SDL_Texture* TextureManager::loadTexture(const std::string& fileName, int& w, in
     SDL_Surface* tempSurface = IMG_Load(fileName.c_str());
     if (!tempSurface) 
         Logging::err("Error loading image : " + std::string(IMG_GetError()), "TextureManager::loadTexture");
+    
     w = tempSurface->w;
     h = tempSurface->h;
     SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::renderer, tempSurface);
     
     if (!texture)
-        Logging::err("Error creating texture", "TextureManager::loadTexture");
+        Logging::err("Error creating texture : " + std::string(SDL_GetError()), "TextureManager::loadTexture");
 
     SDL_FreeSurface(tempSurface);
     return texture;
@@ -27,8 +30,11 @@ SDL_Texture* TextureManager::loadTexture(const std::string& fileName, int& w, in
 
 SDL_FRect TextureManager::dst_floored_ = {0, 0, 0, 0};
 void TextureManager::Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip, double angle) {
-    dst_floored_ = {floorf(dst->x + 0.001f), floorf(dst->y + 0.0001f), dst->w, dst->h}; 
-    SDL_RenderCopyExF(Game::renderer, texture, src, &dst_floored_, angle, nullptr, flip);
+    dst_floored_ = {floorf(dst->x + 0.001f), floorf(dst->y + 0.0001f), dst->w, dst->h};
+
+    if (SDL_RenderCopyExF(Game::renderer, texture, src, &dst_floored_, angle, nullptr, flip) != 0) {
+        Logging::err("Error in SDL_RenderCopyExF : " + std::string(SDL_GetError()), "TextureManager::Draw");
+    }
 }
 
 inline void setPixel(SDL_Surface* surface, SDL_Color* color, int x, int y) {

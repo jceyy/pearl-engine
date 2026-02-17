@@ -1,6 +1,5 @@
 #include <cassert>
 #include "ECS/TransformComponent.hpp"
-#include "ECS/PhysicsComponent.hpp"
 
 size_t TransformComponent::instanceCount_ = 0;
 TransformComponent::TransformComponent() : position(0, 0), scale(1, 1), rotation(0.0) {
@@ -14,7 +13,6 @@ TransformComponent::TransformComponent(PosType x, PosType y) : position(x, y), s
 TransformComponent::TransformComponent(PosType x, PosType y, PosType scaleX, PosType scaleY, double rotation) :
 position(x, y), scale(scaleX, scaleY), rotation(rotation)
 {
-    assert(scale.x > 0.0 && scale.y > 0.0);
     instanceCount_++;
 }
 
