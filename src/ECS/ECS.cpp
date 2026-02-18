@@ -149,7 +149,7 @@ std::vector<Entity*>& EntityManager::getEntitiesForSystem(std::size_t systemID) 
 
 void EntityManager::entitySignatureChanged(Entity* entity, ComponentSignature entitySignature) {
     if (systemManager_ == nullptr) {
-        PRL::Logging::err("System manager not set in EntityManager", "EntityManager::entitySignatureChanged()");
+        PRL::Logging::err("System manager not set in EntityManager", "PRL::EntityManager::entitySignatureChanged()");
         return;
     }
 

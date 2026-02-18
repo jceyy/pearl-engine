@@ -5,7 +5,7 @@ size_t AnimationSystem::instanceCount_ = 0;
 
 AnimationSystem::AnimationSystem(ComponentSignature signature) :
 System(signature), deltaTime_(1.0f) {
-    signature_ = ComponentSignature::create<AnimationComponent, SpriteComponent>();
+    systemName_ = "AnimationSystem";
     instanceCount_++;
 }
 

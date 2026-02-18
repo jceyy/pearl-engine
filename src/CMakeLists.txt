@@ -42,7 +42,6 @@ target_sources(prl_library
     Game.cpp 
     TextureManager.cpp
     Types.cpp
-    Vector2D.cpp
     Collision.cpp
     Logging.cpp
     TileMap.cpp

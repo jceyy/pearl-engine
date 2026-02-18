@@ -37,6 +37,7 @@ protected:
     ComponentSignature signature_; //!< Component signature of entities updated by this system
     EntityManager* entityManager_; //!< Access to entities matching this system
     AssetManager* assetManager_;   //!< Access to assets
+    std::string systemName_;
 
 private:
     static size_t instanceCount_;
@@ -60,7 +61,6 @@ public:
         const std::size_t systemID = SystemID::getSystemTypeID<T>(); 
         if (registeredSystems_[systemID]) {
             // System already registered, return existing
-            std::cout << "[DEBUG] System with ID " << systemID << " already registered, returning existing instance\n";
             return *static_cast<T*>(systemArray_[systemID]);
         }
         T* c(new T(std::forward<TArgs>(mArgs)...));
@@ -71,7 +71,7 @@ public:
 
         systemArray_[systemID] = c;
         registeredSystems_[systemID] = true;
-        std::cout << "[DEBUG] Registered system with ID " << systemID << "\n";
+        PRL::Logging::log("Registered system '" + c->systemName_ + "' with ID " + std::to_string(systemID), "PRL::SystemManager::registerSystem()");
         return *c;
     }
 

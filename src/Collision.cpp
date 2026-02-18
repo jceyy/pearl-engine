@@ -165,7 +165,7 @@ bool Collision::Polygon(const PRL_Polygon& polyA, const PRL_Polygon& polyB){
         Vector2D axis = axes[i];
         float minA = INFINITY_F, maxA = -INFINITY_F;
         for (size_t j = 0; j < verticesA.size(); j++) {
-            float projection = verticesA[j].dotProduct(axis);
+            float projection = verticesA[j].dot(axis);
             if (projection < minA) minA = projection;
             if (projection > maxA) maxA = projection;
         }
@@ -173,7 +173,7 @@ bool Collision::Polygon(const PRL_Polygon& polyA, const PRL_Polygon& polyB){
         // Project the vertices of polygon B onto the axes
         float minB = INFINITY_F, maxB = -INFINITY_F;
         for (size_t j = 0; j < verticesB.size(); j++) {
-            float projection = verticesB[j].dotProduct(axis);
+            float projection = verticesB[j].dot(axis);
             if (projection < minB) minB = projection;
             if (projection > maxB) maxB = projection;
         }

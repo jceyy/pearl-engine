@@ -56,6 +56,9 @@ int main(int argc, char** argv) {
         system("pause");
     #else
         system("read -n 1 -s -p 'Press any key to exit...'"); 
+        string str;
+        cout << "Press enter to exit..." << endl;
+        cin >> str;
     #endif // Windows specific code to pause the console
     #endif // NDEBUG
     return 0;

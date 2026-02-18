@@ -1,30 +1,36 @@
-# For each line, Wsprite Hsprite Nsprites [fps looping]  --- old format, to be improved
-32 32 3 8.0 0
-32 32 8 8.0 0
-
-# example.dat
+# File player_anim.dat
 
 [texture]
 native_resolution 320 180
-filter nearest
+filtering_mode nearest
+file player_anims.png
 
 
 [sprites]
-default_size 1.0 1.0
-default_pivot 0.5 1.0
+default_size  1.0 1.0
+default_pivot 0.0 0.0
 
-# <name>         <x> <y> <w> <h>  size <wx> <wy> pivot <px> <py>
-tree_big         0   0   128 256  size 2.0  4.0  pivot 0.5  1.0
-rock_small       128 0   32  32   size 1.0  1.0  pivot 0.5  1.0
-flower           160 0   16  16   size 0.5  0.5  pivot 0.5  1.0
+# <name>         <x> <y> <w> <h>  size <wx> <wy> pivot <px> <py> (size and pivot can be left empty if default is provided)
+idle0            0   0   32  32
+idle1            32  0   32  32
+idle2            64  0   32  32   
+walk0            0   32  32  32
+walk1            32  32  32  32
+walk2            64  32  32  32 
+walk3            96  32  32  32
+walk4            128 32  32  32
+walk5            160 32  32  32   
+walk6            192 32  32  32
+walk7            224 32  32  32
 
 
+# not implemented yet
 [animations]
 # <name>   fps <value> looping <0|1> frames <sprite_name> <sprite_name> ...
-walk       fps 8       looping 1     frames hero_0 hero_1 hero_2 hero_3
-idle       fps 2       looping 1     frames hero_idle
+idle       fps 3.0     looping 1     frames idle0 idle1 idle2
+walk       fps 6.0     looping 1     frames walk0 walk1 walk2 walk3 walk4 walk5 walk6 walk7
 
-
+# not implemented yet
 [tileset]
 tile_size 32 32
 tile_count 47

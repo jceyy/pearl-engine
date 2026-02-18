@@ -40,7 +40,9 @@ SDL_FRect Game::camera = {0, 0, 800, 640};
 AssetManager* Game::assetManager = new AssetManager(&entityManager);
 SystemManager* Game::systemManager = new SystemManager(entityManager, *assetManager);
 
+
 size_t Game::instanceCount_ = 0;
+
 Game::Game() {
     instanceCount_++;
 }
@@ -90,7 +92,9 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
         // Load objects
         // assetManager->addTexture("terrain", "assets/terrain_ss.png");
         // assetManager->addTexture("terrain3", "assets/terrain3.png");
-        assetManager->addTexture("player", "assets/player_anims.png");
+        // assetManager->addTexture("player", "assets/player_anims.png");
+        assetManager->addAssets("player", "assets/player_anims.dat");
+
         // assetManager->addTexture("projectile", "assets/proj.png");
         // assetManager->addTexture("circle", "assets/circle.png");
         assetManager->addFont("baseFont", "assets/font.ttf", 16);

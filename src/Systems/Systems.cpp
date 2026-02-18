@@ -8,16 +8,17 @@ using namespace std;
 // System implementation //
 size_t System::instanceCount_ = 0;
 
-System::System() : signature_(0u), entityManager_(nullptr) {
+System::System() : signature_(0u), entityManager_(nullptr), assetManager_(nullptr), systemName_("") {
     instanceCount_++;
 }
 
-System::System(ComponentSignature signature) : 
-signature_(signature) {
+System::System(ComponentSignature signature) : signature_(signature), entityManager_(nullptr), assetManager_(nullptr), systemName_("") {
     instanceCount_++;
 }
 
 System::~System() {
+    entityManager_ = nullptr;
+    assetManager_ = nullptr;
     instanceCount_--;
 }
 

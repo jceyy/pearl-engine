@@ -38,6 +38,7 @@ public:
 
     static bool isRunning;
     static SDL_FRect camera;
+    constexpr static int pixelsPerUnit = 1;
 
     enum groupLabels : std::size_t {
         groupMap,
