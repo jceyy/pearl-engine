@@ -3,7 +3,7 @@
 [texture]
 native_resolution 320 180
 filtering_mode nearest
-file player_anims.png
+file assets/player_anims.png
 
 
 [sprites]

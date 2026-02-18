@@ -10,6 +10,14 @@
 #include "ECS/ECS.hpp"
 
 
+#if (SDL_MAJOR_VERSION == 2 && SDL_MINOR_VERSION == 0 && SDL_PATCHLEVEL < 12)
+typedef enum SDL_ScaleMode {
+    SDL_ScaleModeNearest = 0,
+    SDL_ScaleModeLinear = 1,
+    SDL_ScaleModeBest = 2
+} SDL_ScaleMode;
+#endif
+
 class SpriteRegion {
 public:
     SpriteRegion() : x(0), y(0), w(0), h(0) {}
