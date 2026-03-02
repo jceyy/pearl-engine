@@ -33,7 +33,7 @@ public:
     variable_(data) {
         static_assert(std::is_arithmetic<T>::value, "Type is not of an arithmetic type");
     }
-    ~FadingGroup() {};
+    ~FadingGroup() {}
 
 private:
     const   T* variable_;
@@ -54,7 +54,7 @@ public:
     void update() override;
     template <typename T> inline void fade(const T* variable, float init, float final, Uint64 duration_us) {
         fadingGroup_.push_back(new FadingGroup<T>(variable, init, final, duration_us));
-    };
+    }
 
     template <typename T> inline void stopFade(const T* var) {
         for (size_t n(0); n < fadingGroup_.size(); ++n) {

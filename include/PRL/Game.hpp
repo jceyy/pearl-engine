@@ -12,49 +12,43 @@
 #include "AssetManager.hpp"
 #include "Systems/Systems.hpp"
 
+namespace PRL {
 
-class Game : public PRLObject {
-public:
-    Game();
-    Game(const Game& other) = delete;
-    Game(Game&& other) noexcept = delete;
-    Game& operator=(const Game& other) = delete;
-    Game& operator=(Game&& other) noexcept = delete;
-    ~Game();
+    class Game : public PRLObject {
+    public:
+        Game();
+        Game(const Game& other) = delete;
+        Game(Game&& other) noexcept = delete;
+        Game& operator=(const Game& other) = delete;
+        Game& operator=(Game&& other) noexcept = delete;
+        ~Game();
 
-    void init(const std::string& title, int xpos, int ypos, int width, int height, bool fullscreen);
+        void init();
 
-    void handleEvents();
-    void update();
-    void render();
-    void clean();
+        void handleEvents();
+        void update();
+        void render();
+        void clean();
+        
+        static SDL_Event event;
 
-    static Uint64 current_time_us();
-    
-    static SDL_Renderer* renderer;
-    static SDL_Event event;
-    static AssetManager* assetManager;
-    static SystemManager* systemManager;
+        static bool isRunning;
+        static SDL_FRect camera;
+        constexpr static int pixelsPerUnit = 1;
 
-    static bool isRunning;
-    static SDL_FRect camera;
-    constexpr static int pixelsPerUnit = 1;
+        enum groupLabels : std::size_t {
+            groupMap,
+            groupPlayers,
+            groupEnemies,
+            groupColliders,
+            groupProjectiles
+        };
 
-    enum groupLabels : std::size_t {
-        groupMap,
-        groupPlayers,
-        groupEnemies,
-        groupColliders,
-        groupProjectiles
+        inline static size_t getInstanceCount() noexcept { return instanceCount_; }
+        
+    private:        
+        static size_t instanceCount_;
     };
-
-    inline static size_t getInstanceCount() noexcept { return instanceCount_; }
-    
-    private:
-    SDL_Window *window_;
-    
-    static Uint64 current_time_us_;
-    static size_t instanceCount_;
-};
+}
 
 #endif // _GAME_HPP_INCLUDED

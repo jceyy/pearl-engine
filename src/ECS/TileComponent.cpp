@@ -4,6 +4,12 @@
 #include "TextureManager.hpp"
 #include "Game.hpp"
 
+using namespace PRL;
+
+size_t TileMapComponent::instanceCount_ = 0;
+
+
+
 TileComponent::TileComponent() {
     texture_ = nullptr;
 }
@@ -29,14 +35,19 @@ TileComponent::~TileComponent() {
 }
 
 void TileComponent::update(){
-    dstRect_.x = static_cast<PosType>(position.x - Game::camera.x);
-    dstRect_.y = static_cast<PosType>(position.y - Game::camera.y);
+    dstRect_.x = static_cast<PosType>(position.x - PRL::Game::camera.x);
+    dstRect_.y = static_cast<PosType>(position.y - PRL::Game::camera.y);
 }
 
 
 void TileComponent::init(){
     if (texture_ != nullptr) SDL_DestroyTexture(texture_);
-    texture_ = Game::assetManager->getTexture(textureID_).texture;
+    // auto texHandle = Game::assetManager->getTextureHandle(textureID_);
+    // texture_ = Game::assetManager->getTexture(texHandle);
+    texture_ = nullptr;
+    // To be replaced soon
+    PRL::Logging::log("To be deprecated soon", "TileComponent::init");
+
 }
 
 void TileComponent::draw(){

@@ -1,4 +1,5 @@
 #include <sstream>
+#include "Core.hpp"
 #include "Game.hpp"
 #include "TextureManager.hpp"
 #include "ECS/ECS.hpp"
@@ -24,110 +25,84 @@
  * - Automatically remove inactive entities from grouped entities
 **/
 
-using namespace PRL;
 using namespace std;
+using namespace PRL;
 
-EntityManager entityManager;
 SDL_Event Game::event;
-TileMap* tileMap;
-auto& player(entityManager.addEntity());
-auto& label(entityManager.addEntity());
-auto& ball1(entityManager.addEntity());
+EntityManager& entityManager = Core::getEntityManager();
+SystemManager& systemManager = Core::getSystemManager();
+AssetManager& assetManager  = Core::getAssetManager();
 
-SDL_Renderer* Game::renderer = nullptr;
+Entity& player(entityManager.addEntity());
+Entity& tileMap(entityManager.addEntity());
+
+Entity& label(entityManager.addEntity());
+Entity& ball1(entityManager.addEntity());
+
 bool Game::isRunning = false;
 SDL_FRect Game::camera = {0, 0, 800, 640};
-AssetManager* Game::assetManager = new AssetManager(&entityManager);
-SystemManager* Game::systemManager = new SystemManager(entityManager, *assetManager);
-
 
 size_t Game::instanceCount_ = 0;
 
+
+// Methods
 Game::Game() {
     instanceCount_++;
 }
 
 Game::~Game() {
+    clean();
     instanceCount_--;
 }
-void Game::init(const std::string& title, int xpos, int ypos, int width, int height, bool fullscreen) {    
-    int windowFlags = 0;
-    if(SDL_Init(SDL_INIT_EVERYTHING) == 0) {
-        PRL::Logging::log("SDL subsystems initialized", "PRL::Game::init()");
-        if (fullscreen){
-            windowFlags = SDL_WINDOW_FULLSCREEN;
-        }
-        window_ = SDL_CreateWindow(title.c_str(), xpos, ypos, width, height, windowFlags);
-        if (window_){
-            PRL::Logging::log("Window created", "PRL::Game::init()");
-        }
-        else{
-            PRL::Logging::err("Unable to create window : " + std::string(SDL_GetError()), "PRL::Game::init()");
-        }
-        // SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-        // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-        renderer = SDL_CreateRenderer(window_, -1, 0 | SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        if (renderer){
-            SDL_SetRenderDrawColor(renderer, 236, 236, 236, 255);
-            SDL_RendererInfo info;
-            SDL_GetRendererInfo(renderer, &info);
-            PRL::Logging::log("Renderer created with driver : " + std::string(info.name), "PRL::Game::init()");
-        }
-        else{
-            PRL::Logging::err("Unable to create renderer : " + std::string(SDL_GetError()), "PRL::Game::init()");
-        }
 
-        if (TTF_Init() == -1){
-            PRL::Logging::err("Unable to initialize SDL_TTF : " + std::string(SDL_GetError()), "PRL::Game::init()");
-        }
-        isRunning = true;
+void Game::init() {
+    isRunning = true;
+    SDL_SetRenderDrawColor(Core::renderer, 236, 236, 236, 255);
 
-        // Assign system manager to entity manager
-        entityManager.setSystemManager(systemManager);
+    // Register systems
+    systemManager.registerSystem<AnimationSystem>();
+    systemManager.registerSystem<RenderSystem>();
 
-        // Register systems
-        systemManager->registerSystem<AnimationSystem>();
-        systemManager->registerSystem<RenderSystem>();
+    // Load objects
+    // assetManager->addTexture("terrain", "assets/terrain_ss.png");
+    // assetManager->addTexture("terrain3", "assets/terrain3.png");
+    // assetManager->addTexture("player", "assets/player_anims.png");
+    assetManager.addAsset("player", "assets/player_anims.dat");
 
-        // Load objects
-        // assetManager->addTexture("terrain", "assets/terrain_ss.png");
-        // assetManager->addTexture("terrain3", "assets/terrain3.png");
-        // assetManager->addTexture("player", "assets/player_anims.png");
-        assetManager->addAssets("player", "assets/player_anims.dat");
+    // assetManager->addTexture("projectile", "assets/proj.png");
+    // assetManager->addTexture("circle", "assets/circle.png");
+    assetManager.addFont("baseFont", "assets/font.ttf", 16);
 
-        // assetManager->addTexture("projectile", "assets/proj.png");
-        // assetManager->addTexture("circle", "assets/circle.png");
-        assetManager->addFont("baseFont", "assets/font.ttf", 16);
+    // assetManager->createProjectile(Vector2D(500, 500), Vector2D(2, 0), 500, 2, "projectile");
 
-        // assetManager->createProjectile(Vector2D(500, 500), Vector2D(2, 0), 500, 2, "projectile");
+    // tileMap = new TileMap("terrain", 2);
+    // tileMap->loadMap("assets/map2.map", 10);
 
-        // tileMap = new TileMap("terrain", 2);
-        // tileMap->loadMap("assets/map2.map", 10);
+    // tileMap = new TileMap("terrain3", 2);
+    // tileMap->loadMap("assets/map3.map", 10);
 
-        // tileMap = new TileMap("terrain3", 2);
-        // tileMap->loadMap("assets/map3.map", 10);
+    player.addComponent<TransformComponent>(250, 300, 4.0, 4.0, -45);
+    player.addComponent<SpriteComponent>("player");
+    player.addComponent<AnimationComponent>("player.idle");
+    // player.addComponent<KeyboardController>();
+    // player.addComponent<ColliderComponent>("player");
+    player.addGroup(groupPlayers);
 
-        player.addComponent<TransformComponent>(250, 300, 4.0, 4.0, -45);
-        player.addComponent<SpriteComponent>("player");
-        // player.addComponent<KeyboardController>();
-        // player.addComponent<ColliderComponent>("player");
-        player.addGroup(groupPlayers);
+    tileMap.addComponent<TileMapComponent>();
+    tileMap.getComponent<TileMapComponent>().map.loadMap("assets/testmap.map");
 
-        // ball1.addComponent<TransformComponent>(600, 400, 1);
-        // ball1.addComponent<SpriteComponent>("test");
-        // ball1.getComponent<SpriteComponent>().setTexture("circle", 16, 16);
-        // ball1.addComponent<PhysicsComponent>();
-        // ball1.addGroup(groupPlayers);
+    // ball1.addComponent<TransformComponent>(600, 400, 1);
+    // ball1.addComponent<SpriteComponent>("test");
+    // ball1.getComponent<SpriteComponent>().setTexture("circle", 16, 16);
+    // ball1.addComponent<PhysicsComponent>();
+    // ball1.addGroup(groupPlayers);
 
-        // SDL_Color colorWhite = {255, 255, 255, 255};
-        // label.addComponent<UILabel>(10, 10, "Test String", "baseFont", colorWhite);
+    // SDL_Color colorWhite = {255, 255, 255, 255};
+    // label.addComponent<UILabel>(10, 10, "Test String", "baseFont", colorWhite);
 
-        entityManager.refresh();
-        entityManager.update();
-    }
-    else {
-        isRunning = false;
-    }
+    entityManager.refresh();
+    entityManager.update();
+    PRL::Logging::log("Game initialized", "PRL::Game::init");
 }
 
 // auto& tiles(entityManager.getGroup(Game::groupMap));
@@ -137,53 +112,104 @@ void Game::init(const std::string& title, int xpos, int ypos, int width, int hei
 
 
 void Game::handleEvents() {
-    SDL_PollEvent(&event);
-    switch (event.type){
-    case SDL_QUIT:
-        isRunning = false;
-        break;
-
-    case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_SPACE){
-            assetManager->createProjectile(player.getComponent<TransformComponent>().position - Vector2D(33, 0),
-                                            Vector2D(-2, 0), 200, 2, "projectile");
-
-        }
-        else if (event.key.keysym.sym == SDLK_ESCAPE){
+    while(SDL_PollEvent(&event)) {
+        switch (event.type){
+        case SDL_QUIT:
             isRunning = false;
-        }
-        break;
+            break;
 
-    default:
-        break;
+        case SDL_KEYDOWN:
+            if (event.key.keysym.sym == SDLK_SPACE){
+                // assetManager->createProjectile(player.getComponent<TransformComponent>().position - Vector2D(33, 0),
+                //                                 Vector2D(-2, 0), 200, 2, "projectile");
+            }
+            else if (event.key.keysym.sym == SDLK_ESCAPE){
+                isRunning = false;
+            }
+            break;
+
+        default:
+            break;
+        }
     }
+
+    const Uint8* keystates = SDL_GetKeyboardState(nullptr);
+    int moveSpeed = 5;
+    const float deg2rad = M_PI / 180.0f;
+
+    auto walkAnim = assetManager.getAnimationHandle("player.walk");
+    auto idleAnim = assetManager.getAnimationHandle("player.idle");
+
+    auto& playerTransform = player.getComponent<TransformComponent>();
+    
+    Vec2D<float> unitDirection(0, 0);
+    
+    if (keystates[SDL_SCANCODE_LSHIFT]) {
+        moveSpeed *= 2;
+    }
+    if (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W]){
+        unitDirection.x+=sin(playerTransform.rotation * deg2rad);
+        unitDirection.y-=cos(playerTransform.rotation * deg2rad);
+    }
+    if (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S]){
+        unitDirection.x-=sin(playerTransform.rotation * deg2rad);
+        unitDirection.y+=cos(playerTransform.rotation * deg2rad);
+    }
+    if (keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]){
+        player.getComponent<SpriteComponent>().spriteFlip = SDL_FLIP_HORIZONTAL;
+        unitDirection.x-=cos(playerTransform.rotation * deg2rad);
+        unitDirection.y-=sin(playerTransform.rotation * deg2rad);
+    }
+    if (keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]){
+        player.getComponent<SpriteComponent>().spriteFlip = SDL_FLIP_NONE;
+        unitDirection.x+=cos(playerTransform.rotation * deg2rad);
+        unitDirection.y+=sin(playerTransform.rotation * deg2rad);
+    }
+    if (keystates[SDL_SCANCODE_Q]){
+        playerTransform.rotation -= 45.0/4;
+    }
+    if (keystates[SDL_SCANCODE_E]){
+        playerTransform.rotation += 45.0/4;
+    }
+    if (keystates[SDL_SCANCODE_R]){
+        playerTransform.rotation = 0;
+        int textureWidth = assetManager.getTextureAsset(player.getComponent<SpriteComponent>().textureHandle)->regions[0].w;
+        int textureHeight = assetManager.getTextureAsset(player.getComponent<SpriteComponent>().textureHandle)->regions[0].h;
+        textureWidth *= playerTransform.scale.x;
+        textureHeight *= playerTransform.scale.y;
+        playerTransform.position.x = Core::screenSize.x / 2 - textureWidth / 2;
+        playerTransform.position.y = Core::screenSize.y / 2 - textureHeight / 2;
+    }
+
+
+    if (!keystates[SDL_SCANCODE_RIGHT] && !keystates[SDL_SCANCODE_LEFT] && !keystates[SDL_SCANCODE_UP] && !keystates[SDL_SCANCODE_DOWN] &&
+        !keystates[SDL_SCANCODE_S] && !keystates[SDL_SCANCODE_W] && !keystates[SDL_SCANCODE_A] && !keystates[SDL_SCANCODE_D]){
+        if (player.getComponent<AnimationComponent>().animHandle != idleAnim){
+            player.getComponent<AnimationComponent>().setHandle(idleAnim);
+        }
+    }
+    else {
+        if (player.getComponent<AnimationComponent>().animHandle != walkAnim){
+            player.getComponent<AnimationComponent>().setHandle(walkAnim);
+        }
+    }
+
+    // Apply movement
+    unitDirection.normalize();
+    playerTransform.position += unitDirection * moveSpeed;
+
 }
 
 
 void Game::render() {
-    SDL_RenderClear(renderer);
-
-    // for (auto& t : tiles){
-    //     t->draw();
-    // }
-    // for (auto& c : colliders){
-    //     c->draw();
-    // }
-    // for (auto& p : players){
-    //     p->draw();
-    // }
-    // for (auto& p : projectiles){
-    //     p->draw();
-    // }
-    // label.draw();
-
-    systemManager->draw();
-    SDL_RenderPresent(renderer);
+    SDL_RenderClear(PRL::Core::renderer);
+    systemManager.draw();
+    SDL_RenderPresent(PRL::Core::renderer);
 }
 
 
 void Game::update() {
-    current_time_us_ = static_cast<Uint64>(SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency());
+    PRL::Core::updateCurrentTime();
     // SDL_FRect playerCol = player.getComponent<ColliderComponent>().collider;
     Vector2D playerPos = player.getComponent<TransformComponent>().position;
     
@@ -192,6 +218,7 @@ void Game::update() {
     if (label.hasComponent<UILabel>())
         label.getComponent<UILabel>().setLabelText(ss.str(), "baseFont");
 
+    auto& entityManager = PRL::Core::getEntityManager();
     entityManager.refresh();
     entityManager.update();
 
@@ -209,28 +236,18 @@ void Game::update() {
     //         }
     // }
     
-    camera.x = player.getComponent<TransformComponent>().position.x-400;
-    camera.y = player.getComponent<TransformComponent>().position.y-320;
+    camera.x = player.getComponent<TransformComponent>().position.x - 400;
+    camera.y = player.getComponent<TransformComponent>().position.y - 320;
 
     if (camera.x < 0) camera.x = 0;
     else if (camera.x > camera.w) camera.x = camera.w;
     if (camera.y < 0) camera.y = 0;
     else if (camera.y > camera.h) camera.y = camera.h;
 
-    systemManager->update();
+    PRL::Core::getSystemManager().update();
 }
 
 
 void Game::clean() {
-    PRL::Logging::log("Quitting SDL", "PRL::Game::clean()");
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window_);
-    SDL_Quit();
     PRL::Logging::log("Game cleaned", "PRL::Game::clean()");
-}
-
-Uint64 Game::current_time_us_ = 0;
-
-Uint64 Game::current_time_us(){
-    return current_time_us_;
 }

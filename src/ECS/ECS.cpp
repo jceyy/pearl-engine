@@ -168,7 +168,7 @@ void EntityManager::entitySignatureChanged(Entity* entity, ComponentSignature en
         
         // Check if entity matches system signature
         bool matches = systemSignature.matches(entitySignature);
-        
+
         // Find if entity is already in the list
         auto it = std::find(systemEntities.begin(), systemEntities.end(), entity);
         bool inList = (it != systemEntities.end());

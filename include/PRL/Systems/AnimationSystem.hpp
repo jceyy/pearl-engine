@@ -14,10 +14,12 @@ public:
     void update() override;
     void draw() override {};
 
+    inline void setDeltaTime(uint64_t deltaTimeUS) noexcept { deltaTimeUS_ = deltaTimeUS; }
+
     inline static size_t instanceCount() noexcept { return instanceCount_; }
 
 private:
-    float deltaTime_;
+    uint64_t deltaTimeUS_;
     static size_t instanceCount_;
 };
 

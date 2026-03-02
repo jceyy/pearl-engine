@@ -1,6 +1,6 @@
 #include <cmath>
+#include "Core.hpp"
 #include "TextureManager.hpp"
-#include "Game.hpp"
 #include "Logging.hpp"
 #include "Utils.hpp"
 
@@ -19,7 +19,7 @@ SDL_Texture* TextureManager::loadTexture(const std::string& fileName, int& w, in
     
     w = tempSurface->w;
     h = tempSurface->h;
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::renderer, tempSurface);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(PRL::Core::renderer, tempSurface);
     
     if (!texture)
         Logging::err("Error creating texture : " + std::string(SDL_GetError()), "PRL::TextureManager::loadTexture");
@@ -32,7 +32,7 @@ SDL_FRect TextureManager::dst_floored_ = {0, 0, 0, 0};
 void TextureManager::Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip, double angle) {
     dst_floored_ = {floorf(dst->x + 0.001f), floorf(dst->y + 0.0001f), dst->w, dst->h};
 
-    if (SDL_RenderCopyExF(Game::renderer, texture, src, &dst_floored_, angle, nullptr, flip) != 0) {
+    if (SDL_RenderCopyExF(PRL::Core::renderer, texture, src, &dst_floored_, angle, nullptr, flip) != 0) {
         Logging::err("Error in SDL_RenderCopyExF : " + std::string(SDL_GetError()), "PRL::TextureManager::Draw");
     }
 }
@@ -86,7 +86,7 @@ SDL_Texture* TextureManager::generateCircle(int radius, SDL_Color* color) {
         }
     }
 
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::renderer, surface);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(PRL::Core::renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
 }

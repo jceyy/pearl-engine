@@ -1,4 +1,7 @@
+#include "Core.hpp"
 #include "ECS/UILabel.hpp"
+
+using namespace PRL;
 
 UILabel::UILabel(PosType x, PosType y, const std::string& text, const std::string& fontID, const SDL_Color& color) :
 dstRect_({x, y, 0, 0}), labelText_(text), fontID_(fontID), 
@@ -25,8 +28,8 @@ void UILabel::setLabelText(const std::string& text, const std::string& fontID) {
 
     if (labelTexture_ != nullptr) SDL_DestroyTexture(labelTexture_);
 
-    SDL_Surface* surface = TTF_RenderText_Blended(Game::assetManager->getFont(fontID_), labelText_.c_str(), textColor_);
-    labelTexture_ = SDL_CreateTextureFromSurface(Game::renderer, surface);
+    SDL_Surface* surface = TTF_RenderText_Blended(PRL::Core::getAssetManager().getFont(fontID_), labelText_.c_str(), textColor_);
+    labelTexture_ = SDL_CreateTextureFromSurface(PRL::Core::renderer, surface);
     dstRect_.w = surface->w;
     dstRect_.h = surface->h;
     SDL_FreeSurface(surface);
@@ -40,5 +43,5 @@ std::string UILabel::getFontID() const {
 
 
 void UILabel::draw() {
-    SDL_RenderCopyF(Game::renderer, labelTexture_, nullptr, &dstRect_);
+    SDL_RenderCopyF(PRL::Core::renderer, labelTexture_, nullptr, &dstRect_);
 }

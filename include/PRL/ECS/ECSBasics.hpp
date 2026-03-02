@@ -55,8 +55,9 @@ public:
     ComponentSignature(std::size_t id) : bitset_(id) {}
     ~ComponentSignature() = default;
 
+    //! \brief Checks if another signature matches this one (i.e. has at least the same components)
     inline bool matches(const ComponentSignature& other) const {
-        return (bitset_ & other.bitset_) == other.bitset_;
+        return (bitset_ & other.bitset_) == bitset_;
     }
     
     inline bool all() const { return bitset_.all(); }

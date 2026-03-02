@@ -39,6 +39,7 @@ add_library(prl_library)
 
 target_sources(prl_library
   PRIVATE
+    Core.cpp
     Game.cpp 
     TextureManager.cpp
     Types.cpp
@@ -50,6 +51,7 @@ target_sources(prl_library
     PhysicsManager.cpp
     Geometry.cpp
     ECS/ECS.cpp
+    ECS/AnimationComponent.cpp
     ECS/TransformComponent.cpp
     ECS/SpriteComponent.cpp
     ECS/KeyboardController.cpp

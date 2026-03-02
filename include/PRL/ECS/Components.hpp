@@ -5,6 +5,7 @@
 #include "TransformComponent.hpp"
 
 // Dependent components
+#include "AnimationComponent.hpp"
 #include "ColliderComponent.hpp"
 #include "KeyboardController.hpp"
 #include "PhysicsComponent.hpp"

@@ -8,20 +8,16 @@
 class SpriteComponent : public Component {
 public:
     SpriteComponent();
-    SpriteComponent(const TextureID& textureID);
+    SpriteComponent(const TextureID& textureName);
     SpriteComponent(const SpriteComponent& other);
     ~SpriteComponent();
     SpriteComponent(SpriteComponent&& other) noexcept = default;
     SpriteComponent& operator=(const SpriteComponent& other) = default;
     SpriteComponent& operator=(SpriteComponent&& other) noexcept = default;
 
-    void init() override {}; // to be removed !
-    void update() override {}; // to be removed !
-    void draw() override {}; // to be removed !
-
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }
     
-    TextureID textureID;
+    TextureHandle textureHandle;
     size_t layer;
     size_t region;
     SDL_RendererFlip spriteFlip;

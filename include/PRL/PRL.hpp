@@ -1,6 +1,8 @@
 #ifndef PRL_H_INCLUDED
 #define PRL_H_INCLUDED
 
+#include "Core.hpp"
+
 #include "Defaults.hpp"
 #include "Animation.hpp"
 #include "AssetManager.hpp"

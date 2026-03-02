@@ -1,15 +1,21 @@
 #include <iostream>
+#include "Core.hpp"
 #include "ECS/AnimationComponent.hpp"
 
 size_t AnimationComponent::instanceCount_ = 0;
 
-AnimationComponent::AnimationComponent(const AnimationComponent& other) : 
-    animClipID(other.animClipID), currentFrame(other.currentFrame), playing(other.playing), runTime(other.runTime) {
+AnimationComponent::AnimationComponent() : 
+    animHandle(), currentFrame(0), playing(false), runTime(0) {
     instanceCount_++;
 }
 
-AnimationComponent::AnimationComponent(const AnimationID& animClipID) : 
-    animClipID(animClipID), currentFrame(0), playing(false), runTime(0.0f) {
+AnimationComponent::AnimationComponent(const std::string& animName) : 
+    animHandle(PRL::Core::getAssetManager().getAnimationHandle(animName)), currentFrame(0), playing(true), runTime(0) {
+    instanceCount_++;
+}
+
+AnimationComponent::AnimationComponent(const AnimationComponent& other) : 
+    animHandle(other.animHandle), currentFrame(other.currentFrame), playing(other.playing), runTime(other.runTime) {
     instanceCount_++;
 }
 

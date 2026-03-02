@@ -1,4 +1,4 @@
-#include "Game.hpp"
+#include "Core.hpp"
 #include "ECS/FadeComponent.hpp"
 
 FadeComponent::FadeComponent() {}
@@ -6,7 +6,7 @@ FadeComponent::FadeComponent() {}
 FadeComponent::~FadeComponent() {}
 
 void FadeComponent::update() {
-    currentTime_us_ = Game::current_time_us();
+    currentTime_us_ = PRL::Core::getCurrentTimeUS();
 
     for (int n(fadingGroup_.size() - 1); n >= 0 ; --n) {
         if (currentTime_us_ - fadingGroup_[n]->init_time_ > fadingGroup_[n]->duration_us_) {

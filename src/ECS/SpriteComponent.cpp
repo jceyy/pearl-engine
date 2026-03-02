@@ -1,21 +1,21 @@
+#include "Core.hpp"
 #include "ECS/SpriteComponent.hpp"
-#include "TextureManager.hpp"
 
 size_t SpriteComponent::instanceCount_ = 0;
 
 // Constructors, destructor, and assignment operators
 SpriteComponent::SpriteComponent() :
-textureID(), layer(0), region(0), spriteFlip(SDL_FLIP_NONE), visible(true) {
+textureHandle(), layer(0), region(0), spriteFlip(SDL_FLIP_NONE), visible(true) {
     instanceCount_++;
 }
 
 SpriteComponent::SpriteComponent(const SpriteComponent& other) :
-textureID(other.textureID), layer(other.layer), region(other.region), spriteFlip(other.spriteFlip), visible(other.visible) {
+textureHandle(other.textureHandle), layer(other.layer), region(other.region), spriteFlip(other.spriteFlip), visible(other.visible) {
     instanceCount_++;
 }
 
-SpriteComponent::SpriteComponent(const TextureID& textureID) :
-textureID(textureID), layer(0), region(0), spriteFlip(SDL_FLIP_NONE), visible(true) {
+SpriteComponent::SpriteComponent(const std::string& textureName) :
+textureHandle(PRL::Core::getAssetManager().getTextureHandle(textureName)), layer(0), region(0), spriteFlip(SDL_FLIP_NONE), visible(true) {
     instanceCount_++;
 }
 

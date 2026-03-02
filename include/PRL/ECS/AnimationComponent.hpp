@@ -2,31 +2,33 @@
 #define _ANIMATION_COMPONENT_HPP_INCLUDED
 
 #include <iostream>
-#include <string>
-#include <map>
 #include <SDL2/SDL.h>
 #include "ECS/ECS.hpp"
-#include "Animation.hpp"
-
+#include "AssetManager.hpp"
 
 class AnimationComponent : public Component {
 public:
     AnimationComponent();
-    AnimationComponent(const AnimationID& animClipID);
+    AnimationComponent(const std::string& animName);
     AnimationComponent(const AnimationComponent& other);
     ~AnimationComponent();
+    AnimationComponent(AnimationComponent&& other) noexcept = default;
+    AnimationComponent& operator=(const AnimationComponent& other) = default;
+    AnimationComponent& operator=(AnimationComponent&& other) noexcept = default;
 
-    void init() override {}; // to be removed !
-    void update() override {}; // to be removed !
-    void draw() override {}; // to be removed !
-
-    // float inline getRunTime() const noexcept { return runTime; }
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }
 
-    AnimationID animClipID;   // ID to animation clip
+    void inline setHandle(AnimationHandle handle) {
+        animHandle = handle;
+        currentFrame = 0;
+        playing = true;
+        runTime = 0;
+    }
+    
+    AnimationHandle animHandle;   // Handle to animation clip
     std::size_t currentFrame; // current frame index
     bool playing;
-    float runTime;      // accumulated time, not sure to keep ?
+    uint64_t runTime;      // accumulated time, not sure to keep ?
     
 private:
     static size_t instanceCount_;
