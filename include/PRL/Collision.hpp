@@ -4,6 +4,8 @@
 #include "Types.hpp"
 #include "Geometry.hpp"
 
+namespace PRL {
+
 class ColliderComponent;
 
 class Collision {
@@ -73,5 +75,7 @@ private:
     void computeAABB_() override;
     PRL_Circle circle_;
 };
+
+} // namespace PRL
 
 #endif // COLLISION_HPP

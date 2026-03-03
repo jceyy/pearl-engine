@@ -5,6 +5,8 @@
 #include <vector>
 #include "Types.hpp"
 
+namespace PRL {
+
 class Entity;
 class PhysicsComponent;
 
@@ -30,6 +32,8 @@ private:
     int constraintPasses_ = 8;
     static std::vector<PhysicsComponent*> physicsComponents;
 };
+
+} // namespace PRL
 
 
 #endif // _PHYSICS_MANAGER_HPP_INCLUDED

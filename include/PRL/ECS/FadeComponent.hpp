@@ -4,6 +4,8 @@
 #include <type_traits>
 #include "ECS.hpp"
 
+namespace PRL {
+
 class FadeComponent;
 class FadingGroupBase {
 public:
@@ -69,5 +71,7 @@ private:
     std::vector<FadingGroupBase*> fadingGroup_;
     Uint64 currentTime_us_;
 };
+
+} // namespace PRL
 
 #endif // _FADE_COMPONENT_HPP_INCLUDED

@@ -21,9 +21,25 @@ namespace PRL {
         static void clean();
         static inline bool isInitialized() noexcept { return initialized_; } 
 
-        inline static AssetManager& getAssetManager() noexcept { return *assetManager_; }
-        inline static SystemManager& getSystemManager() noexcept { return *systemManager_; }
-        inline static EntityManager& getEntityManager() noexcept { return *entityManager_; }
+        static inline AssetManager& getAssetManager() noexcept {
+            static AssetManager instance(getEntityManager());
+            return instance;
+        }
+
+        static inline EntityManager& getEntityManager() noexcept {
+            static EntityManager instance;
+            return instance;
+        }
+
+        static inline SystemManager& getSystemManager() noexcept {
+            static SystemManager instance(getEntityManager(), getAssetManager());
+            static bool initialized = false;
+            if (!initialized) {
+                getEntityManager().setSystemManager(&instance);
+                initialized = true;
+            }
+            return instance;
+        }
     
         static void updateCurrentTime() noexcept;
         inline static uint64_t getCurrentTimeUS() noexcept { return currentTimeUS_; }
@@ -31,15 +47,7 @@ namespace PRL {
         static Vec2D<int> screenSize;
 
     private:
-        static bool initManagers_(); 
-
         static SDL_Window* window_;
-
-        // Managers
-        static EntityManager* entityManager_;
-        static AssetManager* assetManager_;
-        static SystemManager* systemManager_;
-        static bool managersInitialized_;
         static bool initialized_;
 
         // Time management

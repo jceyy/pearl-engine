@@ -6,6 +6,8 @@
 #include "ECS/ECS.hpp"
 #include "AssetManager.hpp"
 
+namespace PRL {
+
 class AnimationComponent : public Component {
 public:
     AnimationComponent();
@@ -33,5 +35,7 @@ public:
 private:
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // _ANIMATION_COMPONENT_HPP_INCLUDED

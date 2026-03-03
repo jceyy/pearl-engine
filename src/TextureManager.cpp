@@ -4,7 +4,7 @@
 #include "Logging.hpp"
 #include "Utils.hpp"
 
-using namespace PRL;
+namespace PRL {
 
 SDL_Texture* TextureManager::loadTexture(const std::string& fileName){
     int w(0), h(0);
@@ -90,3 +90,5 @@ SDL_Texture* TextureManager::generateCircle(int radius, SDL_Color* color) {
     SDL_FreeSurface(surface);
     return texture;
 }
+
+} // namespace PRL

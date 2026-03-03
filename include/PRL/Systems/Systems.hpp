@@ -9,8 +9,9 @@
 #include "AssetManager.hpp"
 #include "Logging.hpp"
 
-class EntityManager;
+namespace PRL {
 
+class EntityManager;
 
 class System : public PRLObject {
 public:
@@ -100,5 +101,7 @@ private:
 
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // SYSTEM_HPP

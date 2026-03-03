@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 #include <cmath>
 
+using namespace PRL;
+
 constexpr float minTol(2e-15);
 
 // PRL_Line tests

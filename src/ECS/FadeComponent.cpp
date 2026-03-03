@@ -1,6 +1,8 @@
 #include "Core.hpp"
 #include "ECS/FadeComponent.hpp"
 
+namespace PRL {
+
 FadeComponent::FadeComponent() {}
 
 FadeComponent::~FadeComponent() {}
@@ -21,3 +23,5 @@ void FadeComponent::update() {
         }
     }
 }
+
+} // namespace PRL

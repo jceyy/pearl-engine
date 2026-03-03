@@ -5,6 +5,8 @@
 #include "Types.hpp"
 #include "Vector2D.hpp"
 
+namespace PRL {
+
 class TransformComponent : public Component {
 public:
     TransformComponent();
@@ -28,5 +30,7 @@ public:
 private:
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // _TRANSFORM_COMPONENT_HPP_INCLUDED

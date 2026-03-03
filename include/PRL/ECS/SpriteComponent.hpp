@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include "Components.hpp"
 
+namespace PRL {
+
 class SpriteComponent : public Component {
 public:
     SpriteComponent();
@@ -26,5 +28,7 @@ public:
 private:
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // _SPRITE_COMPONENT_HPP_INCLUDED

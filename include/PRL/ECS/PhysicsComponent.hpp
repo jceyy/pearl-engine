@@ -5,6 +5,7 @@
 #include "TransformComponent.hpp"
 #include "../Types.hpp"
 
+namespace PRL {
 
 class PhysicsComponent : public Component {
 public:
@@ -32,6 +33,8 @@ private:
 
     void computeAcceleration_();
 };
+
+} // namespace PRL
 
 
 #endif // _PHYSICS_COMPONENT_HPP_INCLUDED

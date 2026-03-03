@@ -2,6 +2,7 @@
 #include "PhysicsManager.hpp"
 #include "ECS/Components.hpp"
 
+namespace PRL {
 
 PhysicsComponent::PhysicsComponent() { }
 
@@ -56,3 +57,5 @@ void PhysicsComponent::update() {
 }
 
 void PhysicsComponent::draw() {}
+
+} // namespace PRL

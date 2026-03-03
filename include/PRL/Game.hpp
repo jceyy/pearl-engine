@@ -29,7 +29,7 @@ namespace PRL {
         void update();
         void render();
         void clean();
-        
+
         static SDL_Event event;
 
         static bool isRunning;

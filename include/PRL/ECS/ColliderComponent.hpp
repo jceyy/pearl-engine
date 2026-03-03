@@ -14,6 +14,7 @@
 
 // To do : Also FrameColliderComponent, which is a collider that is not updated every frame
 
+namespace PRL {
 
 class ColliderComponent : public Component {
 public:
@@ -41,14 +42,12 @@ public:
     ColliderDebugComponent() {};
     ~ColliderDebugComponent() {};
 
-    void init() override {};
-    void update() override {};
-    void draw() override {};
-
 private:
     ColliderComponent* collider_;
     SDL_FRect dstRect_;
     SDL_Texture* texture_;
 };
+
+} // namespace PRL
 
 #endif // _COLLIDER_COMPONENT_HPP_INCLUDED

@@ -1,19 +1,13 @@
 #include "Core.hpp"
 
-
-using namespace PRL;
 using namespace std;
+
+namespace PRL {
 
 // Static member definitions
 SDL_Renderer* Core::renderer = nullptr;
 Vec2D<int> Core::screenSize(0, 0);
 SDL_Window* Core::window_ = nullptr;
-
-// Managers
-EntityManager* Core::entityManager_ = nullptr;
-AssetManager* Core::assetManager_ = nullptr;
-SystemManager* Core::systemManager_ = nullptr;
-bool Core::managersInitialized_ = initManagers_(); // important
 bool Core::initialized_ = false;
 
 // Time management
@@ -26,10 +20,6 @@ void Core::init(SDL_Rect windowRect, Uint32 rendererFlags, Uint32 windowFlags, c
     if (initialized_) {
         return;
     }
-    // Should already be done before any function call
-    if (!managersInitialized_) 
-        managersInitialized_ = initManagers_();
-    assert(managersInitialized_);
 
     screenSize.set(windowRect.w, windowRect.h);
 
@@ -63,15 +53,6 @@ void Core::init(SDL_Rect windowRect, Uint32 rendererFlags, Uint32 windowFlags, c
 }
 
 void Core::clean() {
-    PRL::Logging::log("Freeing managers...", "PRL::Core::clean()");
-    if (systemManager_) {
-        delete systemManager_;
-        systemManager_ = nullptr;
-    }
-    if (assetManager_) {
-        delete assetManager_;
-        assetManager_ = nullptr;
-    }
     PRL::Logging::log("Quitting SDL...", "PRL::Core::clean()");
     SDL_DestroyRenderer(renderer);
     renderer = nullptr;
@@ -88,14 +69,4 @@ void Core::updateCurrentTime() noexcept {
     ).count();
 }
 
-bool Core::initManagers_() {
-    entityManager_ = new EntityManager();
-    assetManager_ = new AssetManager(*entityManager_);
-    systemManager_ = new SystemManager(*entityManager_, *assetManager_);
-    if (!entityManager_ || !assetManager_ || !systemManager_) {
-        Logging::err("Failed to initialize managers", "PRL::Core::initManagers_");
-        return false;
-    }
-    entityManager_->setSystemManager(systemManager_);
-    return true;
-}
+} // namespace PRL

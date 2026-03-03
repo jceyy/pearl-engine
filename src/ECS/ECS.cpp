@@ -7,11 +7,13 @@
 #include "Systems/RenderSystem.hpp"
 #include "Systems/AnimationSystem.hpp"
 
+using namespace std;
+
+namespace PRL {
+
 // Static instance count initializations
 size_t HumanPlayerComponent::instanceCount_ = 0;
 
-
-using namespace std;
 
 size_t Component::instanceCount_ = 0;
 
@@ -30,7 +32,7 @@ Entity::Entity() : isActive_(true), entityManager_(nullptr) {
 
 Entity::Entity(EntityManager* manager) : isActive_(true),
 entityManager_(manager) {
-    assert(manager != nullptr);
+    assert(entityManager_ != nullptr);
     instanceCount_++;
 }
 
@@ -47,6 +49,7 @@ bool Entity::hasGroup(EntityGroup group) const {
 }
 
 void Entity::addGroup(EntityGroup group){
+    assert(entityManager_ != nullptr);
     groupBitSet_[group] = true;
     entityManager_->addToGroup(this, group);
 }
@@ -64,6 +67,7 @@ void Entity::draw() {
 }
 
 void Entity::notifySignatureChange_() {
+    assert(entityManager_ != nullptr);
     entityManager_->entitySignatureChanged(this, componentSignature_);
 }
 
@@ -182,3 +186,5 @@ void EntityManager::entitySignatureChanged(Entity* entity, ComponentSignature en
         }
     }
 }
+
+} // namespace PRL

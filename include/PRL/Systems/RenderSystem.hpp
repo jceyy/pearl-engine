@@ -5,6 +5,8 @@
 #include "ECS/SpriteComponent.hpp"
 #include "ECS/TransformComponent.hpp"
 
+namespace PRL {
+
 class RenderSystem : public System {
 public:
     RenderSystem(ComponentSignature signature = 
@@ -19,5 +21,7 @@ public:
 private:
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // RENDER_SYSTEM_HPP

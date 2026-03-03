@@ -4,6 +4,7 @@
 #include "ECS.hpp"
 #include "TransformComponent.hpp"
 
+namespace PRL {
 
 class ProjectileComponent : public Component {
 public:
@@ -22,5 +23,6 @@ private:
     float distanceTraveled_;
 };
 
+} // namespace PRL
 
 #endif // _PROJECTILE_COMPONENT_HPP_INCLUDED_

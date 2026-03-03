@@ -1,8 +1,9 @@
 #include "AssetManager.hpp"
 #include "Systems/AnimationSystem.hpp"
 
-
 using namespace std;
+
+namespace PRL {
 
 size_t AnimationSystem::instanceCount_ = 0;
 
@@ -51,3 +52,5 @@ void AnimationSystem::update() {
         spriteComponent.region = assetManager_->getAnimationAsset(animHandle)->frameRegions[animComponent.currentFrame];
     }
 }
+
+} // namespace PRL

@@ -19,6 +19,7 @@ typedef enum SDL_ScaleMode {
 } SDL_ScaleMode;
 #endif
 
+namespace PRL {
 
 template<typename AssetType>
 struct Handle {
@@ -194,5 +195,7 @@ private:
 
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // _ASSET_MANAGER_HPP_INCLUDED

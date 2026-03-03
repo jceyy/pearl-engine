@@ -4,7 +4,7 @@
 #include "TextureManager.hpp"
 #include "Game.hpp"
 
-using namespace PRL;
+namespace PRL {
 
 size_t TileMapComponent::instanceCount_ = 0;
 
@@ -53,3 +53,5 @@ void TileComponent::init(){
 void TileComponent::draw(){
     TextureManager::Draw(texture_, &srcRect_, &dstRect_, SDL_FLIP_NONE);
 }
+
+} // namespace PRL

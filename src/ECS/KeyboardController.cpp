@@ -1,5 +1,7 @@
 #include "ECS/KeyboardController.hpp"
 
+namespace PRL {
+
 void KeyboardController::init() {
     // entity->addComponent<TransformComponent>();
     // transform_ = &entity->getComponent<TransformComponent>();
@@ -74,3 +76,5 @@ void KeyboardController::update() {
     // transform_->velocity.normalize();
     // transform_->velocity *= 4;
 }
+
+} // namespace PRL

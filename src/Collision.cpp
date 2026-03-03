@@ -2,7 +2,7 @@
 #include "ECS/ColliderComponent.hpp"
 #include "Types.hpp"
 
-// PRL_Rect Collision::rect;
+namespace PRL {
 
 bool Collision::ValueInRange(float value, float min, float max) {
     if (value >= min && value <= max) {
@@ -248,3 +248,5 @@ void CircleCollider::computeAABB_() {
     aabb_.w = 2.0f * circle_.r();
     aabb_.h = aabb_.w;
 }
+
+} // namespace PRL

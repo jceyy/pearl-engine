@@ -1,7 +1,7 @@
 #include "Core.hpp"
 #include "ECS/UILabel.hpp"
 
-using namespace PRL;
+namespace PRL {
 
 UILabel::UILabel(PosType x, PosType y, const std::string& text, const std::string& fontID, const SDL_Color& color) :
 dstRect_({x, y, 0, 0}), labelText_(text), fontID_(fontID), 
@@ -45,3 +45,5 @@ std::string UILabel::getFontID() const {
 void UILabel::draw() {
     SDL_RenderCopyF(PRL::Core::renderer, labelTexture_, nullptr, &dstRect_);
 }
+
+} // namespace PRL

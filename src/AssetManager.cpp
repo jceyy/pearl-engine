@@ -6,12 +6,14 @@
 #include "AssetManager.hpp"
 #include "Logging.hpp"
 #include "TextureManager.hpp"
+#include "ECS/ECS.hpp"
 #include "ECS/Components.hpp"
 
-size_t AssetManager::instanceCount_ = 0;
-
 using namespace std;
-using namespace PRL;
+
+namespace PRL {
+
+size_t AssetManager::instanceCount_ = 0;
 
 AssetManager::AssetManager(EntityManager& entityManager) : entityManager_(entityManager)
 {
@@ -317,3 +319,5 @@ void AssetManager::addFont(const std::string& fontID, const std::string& fileNam
 TTF_Font* AssetManager::getFont(const std::string& fontID){
     return fonts_[fontID];
 }
+
+} // namespace PRL

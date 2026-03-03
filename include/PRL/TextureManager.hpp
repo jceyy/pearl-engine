@@ -7,22 +7,25 @@
 #include "SDL2/SDL_image.h"
 #include "AssetManager.hpp"
 
+namespace PRL {
 
-class TextureManager {
-public:
-    virtual ~TextureManager() = 0;
+    class TextureManager {
+    public:
+        virtual ~TextureManager() = 0;
 
-    static SDL_Texture* loadTexture(const std::string& fileName);
-    static SDL_Texture* loadTexture(const std::string& fileName, int& w, int& h);
-    
-    static void Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip, double angle = 0.0);
-    
-    static SDL_Texture* generateCircle(int radius, SDL_Color* color);
-    
-private:
-    static SDL_FRect dst_floored_;
-    
-};
+        static SDL_Texture* loadTexture(const std::string& fileName);
+        static SDL_Texture* loadTexture(const std::string& fileName, int& w, int& h);
+        
+        static void Draw(SDL_Texture* texture, SDL_Rect* src, SDL_FRect* dst, SDL_RendererFlip flip, double angle = 0.0);
+        
+        static SDL_Texture* generateCircle(int radius, SDL_Color* color);
+        
+    private:
+        static SDL_FRect dst_floored_;
+        
+    };
+
+} // namespace PRL
 
 
 #endif // TEXTURE_MANAGER_HPP

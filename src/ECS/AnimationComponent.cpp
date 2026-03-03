@@ -2,6 +2,8 @@
 #include "Core.hpp"
 #include "ECS/AnimationComponent.hpp"
 
+namespace PRL {
+
 size_t AnimationComponent::instanceCount_ = 0;
 
 AnimationComponent::AnimationComponent() : 
@@ -22,3 +24,5 @@ AnimationComponent::AnimationComponent(const AnimationComponent& other) :
 AnimationComponent::~AnimationComponent() {
     instanceCount_--;
 }
+
+} // namespace PRL

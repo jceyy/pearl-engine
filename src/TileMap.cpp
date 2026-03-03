@@ -6,11 +6,11 @@
 #include "TileMap.hpp"
 #include "Logging.hpp"
 
-using namespace PRL;
+namespace PRL {
 
 size_t TileMap::instanceCount_ = 0;
 
-TileMap::TileMap() : mapSize(0, 0), tileSize(0, 0), chunkCount(0, 0), layers(), chunks() {
+TileMap::TileMap() : tileSize(0, 0), mapSize(0, 0), chunkCount(0, 0), layers(), chunks() {
         instanceCount_++;
 }
 
@@ -75,11 +75,13 @@ void TileMap::loadMap(const std::string& fileName) {
     }
 
     // Now load data from sections
-    AssetManager& assetManager = PRL::Core::getAssetManager();
+    // AssetManager& assetManager = PRL::Core::getAssetManager();
     std::vector<std::string> renderOrder;
     std::vector<std::vector<Tile>> fullTilemap;
     std::unordered_map<int, std::tuple<TextureHandle, AnimationHandle, bool>> tileTable;
-
+    
+    // Load all sections in the file
+    return;
     loadPropertiesSection_(sectionLines["[properties]"], renderOrder);
     loadTableSection_(sectionLines["[table]"], tileTable);
     loadLayerSections_(layerSections, renderOrder, tileTable, fullTilemap);
@@ -230,6 +232,8 @@ void TileMap::loadLayerSections_(const std::vector<std::vector<std::string>>& la
 
 
 void TileMap::loadTableSection_(const std::vector<std::string>& lines, std::unordered_map<int, std::tuple<TextureHandle, AnimationHandle, bool>>& tileTable) {
+    // temp
+    return;
     if (lines.empty()) {
         PRL::Logging::err("No lines in [table] section of tilemap data file", "TileMap::loadTableSection_");
         return;
@@ -278,7 +282,6 @@ void TileMap::loadTableSection_(const std::vector<std::string>& lines, std::unor
             tileSize = {0,0};
         }
     }
-
 }
 
 void TileMap::loadCollisionSection_(const std::vector<std::string>& lines) {
@@ -384,3 +387,5 @@ void TileMap::loadCollisionSection_(const std::vector<std::string>& lines) {
 //         tile.addGroup(Game::groupColliders);
 //     }
 // }
+
+} // namespace PRL

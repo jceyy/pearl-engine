@@ -1,8 +1,7 @@
 #include "ECS/ColliderComponent.hpp"
 #include "TextureManager.hpp"
 
-// ColliderComponent::ColliderComponent() : 
-//     isTrigger_(false), tag_(""), shape_(nullptr), transform_(nullptr) {}
+namespace PRL {
 
 ColliderComponent::ColliderComponent(const std::string& tag, const ColliderShape& shape, bool isTrigger) : 
     isTrigger_(isTrigger), tag_(tag), transform_(nullptr) {
@@ -39,4 +38,4 @@ void ColliderComponent::update() {
     // dstRect_.y = collider.y - Game::camera.y;
 }
 
-void ColliderComponent::draw() {}
+} // namespace PRL

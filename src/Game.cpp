@@ -26,18 +26,18 @@
 **/
 
 using namespace std;
-using namespace PRL;
+namespace PRL {
 
 SDL_Event Game::event;
 EntityManager& entityManager = Core::getEntityManager();
 SystemManager& systemManager = Core::getSystemManager();
 AssetManager& assetManager  = Core::getAssetManager();
 
-Entity& player(entityManager.addEntity());
-Entity& tileMap(entityManager.addEntity());
+Entity* player = nullptr;
+Entity* tileMap = nullptr;
 
-Entity& label(entityManager.addEntity());
-Entity& ball1(entityManager.addEntity());
+Entity* label = nullptr;
+Entity* ball1 = nullptr;
 
 bool Game::isRunning = false;
 SDL_FRect Game::camera = {0, 0, 800, 640};
@@ -75,21 +75,28 @@ void Game::init() {
 
     // assetManager->createProjectile(Vector2D(500, 500), Vector2D(2, 0), 500, 2, "projectile");
 
+    // Create entities
+    player = &entityManager.addEntity();
+    tileMap = &entityManager.addEntity();
+
+    label = &entityManager.addEntity();
+    ball1 = &entityManager.addEntity();
+
     // tileMap = new TileMap("terrain", 2);
     // tileMap->loadMap("assets/map2.map", 10);
 
     // tileMap = new TileMap("terrain3", 2);
     // tileMap->loadMap("assets/map3.map", 10);
 
-    player.addComponent<TransformComponent>(250, 300, 4.0, 4.0, -45);
-    player.addComponent<SpriteComponent>("player");
-    player.addComponent<AnimationComponent>("player.idle");
+    player->addComponent<TransformComponent>(250, 300, 4.0, 4.0, -45);
+    player->addComponent<SpriteComponent>("player");
+    player->addComponent<AnimationComponent>("player.idle");
     // player.addComponent<KeyboardController>();
     // player.addComponent<ColliderComponent>("player");
-    player.addGroup(groupPlayers);
+    player->addGroup(groupPlayers);
 
-    tileMap.addComponent<TileMapComponent>();
-    tileMap.getComponent<TileMapComponent>().map.loadMap("assets/testmap.map");
+    tileMap->addComponent<TileMapComponent>();
+    tileMap->getComponent<TileMapComponent>().map.loadMap("assets/testmap.map");
 
     // ball1.addComponent<TransformComponent>(600, 400, 1);
     // ball1.addComponent<SpriteComponent>("test");
@@ -140,7 +147,7 @@ void Game::handleEvents() {
     auto walkAnim = assetManager.getAnimationHandle("player.walk");
     auto idleAnim = assetManager.getAnimationHandle("player.idle");
 
-    auto& playerTransform = player.getComponent<TransformComponent>();
+    auto& playerTransform = player->getComponent<TransformComponent>();
     
     Vec2D<float> unitDirection(0, 0);
     
@@ -156,12 +163,12 @@ void Game::handleEvents() {
         unitDirection.y+=cos(playerTransform.rotation * deg2rad);
     }
     if (keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]){
-        player.getComponent<SpriteComponent>().spriteFlip = SDL_FLIP_HORIZONTAL;
+        player->getComponent<SpriteComponent>().spriteFlip = SDL_FLIP_HORIZONTAL;
         unitDirection.x-=cos(playerTransform.rotation * deg2rad);
         unitDirection.y-=sin(playerTransform.rotation * deg2rad);
     }
     if (keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]){
-        player.getComponent<SpriteComponent>().spriteFlip = SDL_FLIP_NONE;
+        player->getComponent<SpriteComponent>().spriteFlip = SDL_FLIP_NONE;
         unitDirection.x+=cos(playerTransform.rotation * deg2rad);
         unitDirection.y+=sin(playerTransform.rotation * deg2rad);
     }
@@ -173,8 +180,8 @@ void Game::handleEvents() {
     }
     if (keystates[SDL_SCANCODE_R]){
         playerTransform.rotation = 0;
-        int textureWidth = assetManager.getTextureAsset(player.getComponent<SpriteComponent>().textureHandle)->regions[0].w;
-        int textureHeight = assetManager.getTextureAsset(player.getComponent<SpriteComponent>().textureHandle)->regions[0].h;
+        int textureWidth = assetManager.getTextureAsset(player->getComponent<SpriteComponent>().textureHandle)->regions[0].w;
+        int textureHeight = assetManager.getTextureAsset(player->getComponent<SpriteComponent>().textureHandle)->regions[0].h;
         textureWidth *= playerTransform.scale.x;
         textureHeight *= playerTransform.scale.y;
         playerTransform.position.x = Core::screenSize.x / 2 - textureWidth / 2;
@@ -184,13 +191,13 @@ void Game::handleEvents() {
 
     if (!keystates[SDL_SCANCODE_RIGHT] && !keystates[SDL_SCANCODE_LEFT] && !keystates[SDL_SCANCODE_UP] && !keystates[SDL_SCANCODE_DOWN] &&
         !keystates[SDL_SCANCODE_S] && !keystates[SDL_SCANCODE_W] && !keystates[SDL_SCANCODE_A] && !keystates[SDL_SCANCODE_D]){
-        if (player.getComponent<AnimationComponent>().animHandle != idleAnim){
-            player.getComponent<AnimationComponent>().setHandle(idleAnim);
+        if (player->getComponent<AnimationComponent>().animHandle != idleAnim){
+            player->getComponent<AnimationComponent>().setHandle(idleAnim);
         }
     }
     else {
-        if (player.getComponent<AnimationComponent>().animHandle != walkAnim){
-            player.getComponent<AnimationComponent>().setHandle(walkAnim);
+        if (player->getComponent<AnimationComponent>().animHandle != walkAnim){
+            player->getComponent<AnimationComponent>().setHandle(walkAnim);
         }
     }
 
@@ -211,12 +218,12 @@ void Game::render() {
 void Game::update() {
     PRL::Core::updateCurrentTime();
     // SDL_FRect playerCol = player.getComponent<ColliderComponent>().collider;
-    Vector2D playerPos = player.getComponent<TransformComponent>().position;
+    Vector2D playerPos = player->getComponent<TransformComponent>().position;
     
     std::stringstream ss;
     ss << "Player position: " << playerPos;
-    if (label.hasComponent<UILabel>())
-        label.getComponent<UILabel>().setLabelText(ss.str(), "baseFont");
+    if (label->hasComponent<UILabel>())
+        label->getComponent<UILabel>().setLabelText(ss.str(), "baseFont");
 
     auto& entityManager = PRL::Core::getEntityManager();
     entityManager.refresh();
@@ -225,19 +232,19 @@ void Game::update() {
     // for (auto& c : colliders) {
     //     SDL_FRect cCol = c->getComponent<ColliderComponent>().collider;
     //     if (Collision::AABB(cCol, playerCol)){
-    //         player.getComponent<TransformComponent>().position = playerPos;
+    //         player->getComponent<TransformComponent>().position = playerPos;
     //     }
     // }
 
     // for (auto& p : projectiles) {
-    //     if (Collision::AABB(player.getComponent<ColliderComponent>().collider,
+    //     if (Collision::AABB(player->getComponent<ColliderComponent>().collider,
     //         p->getComponent<ColliderComponent>().collider)) {
     //             p->destroy();
     //         }
     // }
     
-    camera.x = player.getComponent<TransformComponent>().position.x - 400;
-    camera.y = player.getComponent<TransformComponent>().position.y - 320;
+    camera.x = player->getComponent<TransformComponent>().position.x - 400;
+    camera.y = player->getComponent<TransformComponent>().position.y - 320;
 
     if (camera.x < 0) camera.x = 0;
     else if (camera.x > camera.w) camera.x = camera.w;
@@ -251,3 +258,5 @@ void Game::update() {
 void Game::clean() {
     PRL::Logging::log("Game cleaned", "PRL::Game::clean()");
 }
+
+} // namespace PRL

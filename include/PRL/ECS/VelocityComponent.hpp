@@ -5,6 +5,8 @@
 #include "Types.hpp"
 #include "Vector2D.hpp"
 
+namespace PRL {
+
 class VelocityComponent : public Component {
 public:
     VelocityComponent();
@@ -26,5 +28,7 @@ public:
 private:
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // _TRANSFORM_COMPONENT_HPP_INCLUDED

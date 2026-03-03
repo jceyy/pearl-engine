@@ -3,6 +3,8 @@
 
 using namespace std;
 
+namespace PRL {
+
 size_t RenderSystem::instanceCount_ = 0;
 
 RenderSystem::RenderSystem(ComponentSignature signature) : 
@@ -44,3 +46,5 @@ void RenderSystem::draw() {
             entity->getComponent<SpriteComponent>().spriteFlip, entity->getComponent<TransformComponent>().rotation);
         }
 }
+
+} // namespace PRL

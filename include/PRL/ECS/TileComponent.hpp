@@ -19,7 +19,7 @@ namespace PRL {
     private:
         static size_t instanceCount_;
     };
-} // namespace PRL
+
 
     // Old things -- to be removed
     class TransformComponent;
@@ -51,5 +51,6 @@ namespace PRL {
         std::string textureID_;
     };
 
+} // namespace PRL
 
 #endif // _TILE_COMPONENT_HPP_INCLUDED

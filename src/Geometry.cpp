@@ -5,6 +5,7 @@
 #include "Geometry.hpp"
 #include "Constants.hpp"
 
+using namespace PRL;
 
 // =======================================================================
 // ================================ PRL_Line =============================
@@ -301,39 +302,41 @@ PRL_Polygon PolygonGenerator::generate(size_t n, float r, float rotAngle, bool c
 }
 
 // Stream operators
-std::ostream& operator<<(std::ostream& os, const PRL_Line& line) {
-    os << "P1: " << line.p1_ << std::endl;
-    os << "P2: " << line.p2_ << std::endl;
-    os << "Length: " << line.length() << std::endl;
-    os << "Slope: " << line.slope() << std::endl;
-    os << "Angle: " << line.angle() << std::endl;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const PRL_Rectangle& rect) {
-    os << "X: " << rect.x_ << std::endl;
-    os << "Y: " << rect.y_ << std::endl;
-    os << "Width: " << rect.w_ << std::endl;
-    os << "Height: " << rect.h_ << std::endl;
-    os << "Area: " << rect.area() << std::endl;
-    os << "Perimeter: " << rect.perimeter() << std::endl;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const PRL_Circle& cir) {
-    os << "Center: (" << cir.x_ << ", " << cir.y_ << ")" << std::endl;
-    os << "Radius: " << cir.r_ << std::endl;
-    os << "Area: " << cir.area() << std::endl;
-    os << "Perimeter: " << cir.perimeter() << std::endl;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const PRL_Polygon& poly) {
-    os << "Vertices (" << poly.vertices_.size() << "): " << std::endl;
-    for (size_t i = 0; i < poly.vertices_.size(); ++i) {
-        os << i << ". " << poly.vertices_[i] << std::endl;
+namespace PRL {
+    std::ostream& operator<<(std::ostream& os, const PRL_Line& line) {
+        os << "P1: " << line.p1_ << std::endl;
+        os << "P2: " << line.p2_ << std::endl;
+        os << "Length: " << line.length() << std::endl;
+        os << "Slope: " << line.slope() << std::endl;
+        os << "Angle: " << line.angle() << std::endl;
+        return os;
     }
-    os << "Area: " << poly.area() << std::endl;
-    os << "Perimeter: " << poly.perimeter() << std::endl;
-    return os;
+
+    std::ostream& operator<<(std::ostream& os, const PRL_Rectangle& rect) {
+        os << "X: " << rect.x_ << std::endl;
+        os << "Y: " << rect.y_ << std::endl;
+        os << "Width: " << rect.w_ << std::endl;
+        os << "Height: " << rect.h_ << std::endl;
+        os << "Area: " << rect.area() << std::endl;
+        os << "Perimeter: " << rect.perimeter() << std::endl;
+        return os;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const PRL_Circle& cir) {
+        os << "Center: (" << cir.x_ << ", " << cir.y_ << ")" << std::endl;
+        os << "Radius: " << cir.r_ << std::endl;
+        os << "Area: " << cir.area() << std::endl;
+        os << "Perimeter: " << cir.perimeter() << std::endl;
+        return os;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const PRL_Polygon& poly) {
+        os << "Vertices (" << poly.vertices_.size() << "): " << std::endl;
+        for (size_t i = 0; i < poly.vertices_.size(); ++i) {
+            os << i << ". " << poly.vertices_[i] << std::endl;
+        }
+        os << "Area: " << poly.area() << std::endl;
+        os << "Perimeter: " << poly.perimeter() << std::endl;
+        return os;
+    }
 }

@@ -1,5 +1,7 @@
 #include "Types.hpp"
 
+namespace PRL {
+
 size_t PRLObject::instanceCount_ = 0;
 
 PRLObject::PRLObject() {
@@ -14,3 +16,5 @@ PRLObject::PRLObject(const PRLObject& other) {
 PRLObject::~PRLObject() {
     instanceCount_--;
 }
+
+} // namespace PRL

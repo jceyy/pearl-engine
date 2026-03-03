@@ -1,6 +1,8 @@
 #include "Core.hpp"
 #include "ECS/SpriteComponent.hpp"
 
+namespace PRL {
+
 size_t SpriteComponent::instanceCount_ = 0;
 
 // Constructors, destructor, and assignment operators
@@ -22,3 +24,5 @@ textureHandle(PRL::Core::getAssetManager().getTextureHandle(textureName)), layer
 SpriteComponent::~SpriteComponent() {
     instanceCount_--;
 }
+
+} // namespace PRL

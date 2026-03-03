@@ -39,33 +39,34 @@ add_library(prl_library)
 
 target_sources(prl_library
   PRIVATE
-    Core.cpp
-    Game.cpp 
-    TextureManager.cpp
-    Types.cpp
-    Collision.cpp
-    Logging.cpp
-    TileMap.cpp
     Animation.cpp
     AssetManager.cpp
-    PhysicsManager.cpp
+    Collision.cpp
+    Core.cpp
+    Game.cpp 
     Geometry.cpp
-    ECS/ECS.cpp
+    Logging.cpp
+    PhysicsManager.cpp
+    TextureManager.cpp
+    TileMap.cpp
+    Types.cpp
     ECS/AnimationComponent.cpp
-    ECS/TransformComponent.cpp
-    ECS/SpriteComponent.cpp
-    ECS/KeyboardController.cpp
-    ECS/ColliderComponent.cpp
-    ECS/TileComponent.cpp
-    ECS/ProjectileComponent.cpp
-    ECS/UILabel.cpp
-    ECS/PhysicsComponent.cpp
     ECS/ButtonComponent.cpp
+    ECS/ColliderComponent.cpp
     ECS/FadeComponent.cpp
+    ECS/ECS.cpp
+    ECS/HumanPlayerComponent.cpp
+    ECS/KeyboardController.cpp
+    ECS/PhysicsComponent.cpp
+    ECS/ProjectileComponent.cpp
+    ECS/SpriteComponent.cpp
+    ECS/TileComponent.cpp
+    ECS/TransformComponent.cpp
+    ECS/UILabel.cpp
     ECS/VelocityComponent.cpp
-    Systems/Systems.cpp
-    Systems/RenderSystem.cpp
     Systems/AnimationSystem.cpp
+    Systems/RenderSystem.cpp
+    Systems/Systems.cpp
   PUBLIC
     ${HEADER_LIST}
 )

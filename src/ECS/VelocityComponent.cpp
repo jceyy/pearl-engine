@@ -1,5 +1,7 @@
 #include "ECS/VelocityComponent.hpp"
 
+namespace PRL {
+
 size_t VelocityComponent::instanceCount_ = 0;
 
 VelocityComponent::VelocityComponent() : linearVel(0, 0), angularVel(0) {
@@ -17,3 +19,5 @@ VelocityComponent::VelocityComponent(const VelocityComponent& other) : linearVel
 VelocityComponent::~VelocityComponent() {
     instanceCount_--;
 }
+
+} // namespace PRL

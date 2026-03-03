@@ -6,6 +6,8 @@
 #include "Types.hpp"
 #include "Vector2D.hpp"
 
+namespace PRL {
+
 class Collision;
 
 class PRL_GeometricObject {
@@ -137,9 +139,11 @@ public:
     static PRL_Polygon generate(size_t n, float r, float rotAngle, bool coordFromCenter = true);
 };
 
-std::ostream& operator<<(std::ostream& os, const PRL_Line& vec);
+std::ostream& operator<<(std::ostream& os, const PRL::PRL_Line& vec);
 std::ostream& operator<<(std::ostream& os, const PRL_Rectangle& rec);
 std::ostream& operator<<(std::ostream& os, const PRL_Circle& cir);
 std::ostream& operator<<(std::ostream& os, const PRL_Polygon& poly);
+
+} // namespace PRL
 
 #endif // GEOMETRY_HPP_INCLUDED

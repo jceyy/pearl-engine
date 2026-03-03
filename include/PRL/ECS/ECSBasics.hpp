@@ -6,11 +6,13 @@
 #include <assert.h>
 #include "Defaults.hpp"
 
+namespace PRL {
+
 namespace ECS {
     constexpr std::size_t maxComponents = 32;
     constexpr std::size_t maxGroups = 32;
     constexpr std::size_t maxSystems = 32;
-}
+} // namespace PRL::ECS
 
 using EntityGroup = std::size_t;
 using EntityGroupBitSet = std::bitset<ECS::maxGroups>;
@@ -156,5 +158,7 @@ private:
     }
     std::size_t id_;
 };
+
+} // namespace PRL
 
 #endif // ECS_BASICS_HPP

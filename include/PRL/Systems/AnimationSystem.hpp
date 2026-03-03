@@ -5,6 +5,8 @@
 #include "ECS/AnimationComponent.hpp"
 #include "ECS/SpriteComponent.hpp"
 
+namespace PRL {
+
 class AnimationSystem : public System {
 public:
     AnimationSystem(ComponentSignature signature = 
@@ -22,5 +24,7 @@ private:
     uint64_t deltaTimeUS_;
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // ANIMATION_SYSTEM_HPP

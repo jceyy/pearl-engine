@@ -1,6 +1,7 @@
 #include "PhysicsManager.hpp"
 #include "Constants.hpp"
 
+namespace PRL {
 
 Vector2D PhysicsManager::globalGravity = Vector2D(0, PHYSICS_g_earth);
 float PhysicsManager::dt = 5e-2;
@@ -18,4 +19,6 @@ void PhysicsManager::update() {}
 void PhysicsManager::applyConstraints() {
     return;
 }
+
+} // namespace PRL
 

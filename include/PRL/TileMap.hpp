@@ -19,14 +19,14 @@ namespace PRL {
     //     // Add more flags as needed
     // };
 
-    using TileID = int16_t;
-    using LayerID = int8_t;
+    using TileMapTileID = int16_t;
+    using TileMapLayerID = uint8_t;
 
     class Tile {
     public:
         Tile() : ID(0), textureHandle({0}), animationHandle({0}), animated(false) {}
         
-        TileID ID;
+        TileMapTileID ID;
         TextureHandle textureHandle;
         AnimationHandle animationHandle;
         bool animated;
@@ -76,7 +76,7 @@ namespace PRL {
         }
 
         //! \brief Get tile by tile grid coordinates
-        inline Tile& atGrid(LayerID layer, int x, int y) {
+        inline Tile& atGrid(TileMapLayerID layer, int x, int y) {
             assert(layer < layers.size());
             assert(x >= 0 && x < mapSize.x);
             assert(y >= 0 && y < mapSize.y);
@@ -87,7 +87,7 @@ namespace PRL {
         }
         
         //! \brief Get tile by world coordinates
-        inline Tile& atWorld(LayerID layer, PosType worldX, PosType worldY)
+        inline Tile& atWorld(TileMapLayerID layer, PosType worldX, PosType worldY)
         {
             return atGrid(layer, 
                 static_cast<int>(worldX / tileSize.x),

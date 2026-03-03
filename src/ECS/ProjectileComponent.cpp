@@ -1,7 +1,7 @@
 #include "ECS/ProjectileComponent.hpp"
 #include "Game.hpp"
 
-using namespace PRL;
+namespace PRL {
 
 ProjectileComponent::ProjectileComponent(float range, float speed, Vector2D vel) :
 transform_(nullptr), velocity_(vel), range_(range), speed_(speed), distanceTraveled_(0){
@@ -30,3 +30,5 @@ void ProjectileComponent::update(){
                 entity->destroy();
              }
 }
+
+} // namespace PRL

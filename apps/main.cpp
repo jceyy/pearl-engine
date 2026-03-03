@@ -6,11 +6,9 @@
 #include <windows.h>
 #endif
 
-#include "Core.hpp"
-#include "PRL/Game.hpp"
+#include "PRL.hpp"
 
 using namespace std;
-using namespace PRL;
 
 int main(int argc, char** argv) {
     #if defined(_WIN32) || defined(_WIN64)
@@ -26,19 +24,20 @@ int main(int argc, char** argv) {
     // Engine initialization 
     uint32_t renderFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
     uint32_t windowFlags = 0;
+
     PRL::Core::init({SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600}, renderFlags, windowFlags, "Game engine test");
     
     // Game initialization
     const uint64_t FPS = 60;
     const uint64_t FRAME_DELAY = 1000000UL / FPS;
     uint64_t frameStart(0), frameTime(0);
-    Game *game = nullptr;
+    PRL::Game *game = nullptr;
 
     try {
-        game = new Game();
+        game = new PRL::Game();
         game->init();
         
-        while(Game::isRunning){
+        while(PRL::Game::isRunning){
             frameStart = PRL::Core::getCurrentTimeUS();
 
             game->handleEvents();

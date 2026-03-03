@@ -7,28 +7,31 @@
 using PosType = float;
 using PRL_Rect = SDL_FRect; // to be replaced ?
 
-
 #include "Vector2D.hpp"
 
-const float INFINITY_F(std::numeric_limits<float>::infinity());
+namespace PRL {
 
-// Generic PRL object class
-class PRLObject {
-public:
-    PRLObject();
-    PRLObject(const PRLObject& other);
-    PRLObject& operator=(const PRLObject& other) = default;
-    PRLObject(PRLObject&& other) noexcept = default;
-    PRLObject& operator=(PRLObject&& other) noexcept = default;
-    virtual ~PRLObject() = 0;
+    const float INFINITY_F(std::numeric_limits<float>::infinity());
 
-    static inline size_t instanceCount() noexcept { return instanceCount_; }
+    // Generic PRL object class
+    class PRLObject {
+    public:
+        PRLObject();
+        PRLObject(const PRLObject& other);
+        PRLObject& operator=(const PRLObject& other) = default;
+        PRLObject(PRLObject&& other) noexcept = default;
+        PRLObject& operator=(PRLObject&& other) noexcept = default;
+        virtual ~PRLObject() = 0;
 
-private:
-    static size_t instanceCount_;
-};
+        static inline size_t instanceCount() noexcept { return instanceCount_; }
 
-using TextureID = std::string;
-using AnimationID = std::string;
+    private:
+        static size_t instanceCount_;
+    };
+
+    using TextureID = std::string;
+    using AnimationID = std::string;
+
+} // namespace PRL
 
 #endif // TYPES_HPP_INCLUDED

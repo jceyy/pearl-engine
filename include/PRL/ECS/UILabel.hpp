@@ -9,6 +9,7 @@
 #include "../AssetManager.hpp"
 #include "../Game.hpp"
 
+namespace PRL {
 
 class UILabel : public Component {
 public:
@@ -29,6 +30,8 @@ private:
     SDL_Color textColor_;
     SDL_Texture* labelTexture_;
 };
+
+} // namespace PRL
 
 
 #endif // _UI_LABEL_HPP_INCLUDED

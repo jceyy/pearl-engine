@@ -1,6 +1,8 @@
 #include <cassert>
 #include "ECS/TransformComponent.hpp"
 
+namespace PRL {
+
 size_t TransformComponent::instanceCount_ = 0;
 TransformComponent::TransformComponent() : position(0, 0), scale(1, 1), rotation(0.0) {
     instanceCount_++;
@@ -24,3 +26,5 @@ position(other.position), scale(other.scale), rotation(other.rotation) {
 TransformComponent::~TransformComponent() {
     instanceCount_--;
 }
+
+} // namespace PRL

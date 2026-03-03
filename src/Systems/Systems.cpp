@@ -5,6 +5,8 @@
 
 using namespace std;
 
+namespace PRL {
+
 // System implementation //
 size_t System::instanceCount_ = 0;
 
@@ -46,15 +48,15 @@ ComponentSignature SystemManager::getSignature(size_t systemID) const {
 }
 
 void SystemManager::update() {
-    // cout << "[DEBUG] SystemManager updating " << systems_.size() << " systems\n";
     for (size_t i = 0; i < systems_.size(); ++i) {
         systems_[i]->update();
     }
 }
 
 void SystemManager::draw() {
-    // cout << "[DEBUG] SystemManager drawing " << systems_.size() << " systems\n";
     for (size_t i = 0; i < systems_.size(); ++i) {
         systems_[i]->draw();
     }
 }
+
+} // namespace PRL

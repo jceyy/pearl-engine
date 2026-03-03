@@ -9,7 +9,9 @@
 #include <algorithm>
 #include <assert.h>
 #include "Types.hpp"
-#include "ECSBasics.hpp"
+#include "ECS/ECSBasics.hpp"
+
+namespace PRL {
 
 class EntityManager;
 class SystemManager;
@@ -30,7 +32,7 @@ public:
     virtual void draw() {}; // to be deprecated
 
     //! Maximum number of Component that can be registered (proxy for ECS::maxComponents)
-    constexpr static std::size_t maxComponents = ECS::maxComponents;
+    constexpr static std::size_t maxComponents = PRL::ECS::maxComponents;
 
     inline static size_t getInstanceCount() noexcept { return instanceCount_; }
 
@@ -48,6 +50,7 @@ class Entity : public PRLObject {
 public:
     Entity();
     Entity(EntityManager* manager);
+    // Entity(EntityManager* manager = &PRL::Core::getEntityManager());
     Entity(const Entity&) = delete;
     Entity& operator=(const Entity&) = delete;
     Entity(Entity&&) = delete;
@@ -166,5 +169,7 @@ private:
 
     static size_t instanceCount_;
 };
+
+} // namespace PRL
 
 #endif // ENTITY_COMPONENT_SYSTEM_HPP

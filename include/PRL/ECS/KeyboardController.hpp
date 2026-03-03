@@ -5,6 +5,8 @@
 #include "Components.hpp"
 #include "ECS.hpp"
 
+namespace PRL {
+
 class SpriteComponent;
 
 class KeyboardController : public Component{
@@ -16,5 +18,7 @@ private:
     TransformComponent* transform_;
     SpriteComponent* sprite_;
 };
+
+} // namespace PRL
 
 #endif // KEYBOARD_CONTROLLER_HPP
