@@ -6,6 +6,8 @@
 #include "TileMap.hpp"
 #include "Logging.hpp"
 
+using namespace std;
+
 namespace PRL {
 
 size_t TileMap::instanceCount_ = 0;
@@ -212,9 +214,10 @@ void TileMap::loadLayerSections_(const std::vector<std::vector<std::string>>& la
                 bool animated = std::get<2>(tileTable.at(tileID));
                 auto& currentTile = fullTilemap.back()[nTilesX + nTilesY * mapSize.x];
                 currentTile.ID = tileID;
-                currentTile.textureHandle = texHandle;
-                currentTile.animationHandle = animHandle;
-                currentTile.animated = animated;
+                cout << "[DEBUG] To be changed here in TileMap::loadLayerSections_: tileID=" << tileID << endl;
+                // currentTile.textureHandle = texHandle;
+                // currentTile.animationHandle = animHandle;
+                // currentTile.animated = animated;
                 nTilesX++;
             }
             if (nTilesX != mapSize.x) {

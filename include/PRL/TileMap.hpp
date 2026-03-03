@@ -9,9 +9,6 @@
 
 namespace PRL {
 
-    //! \brief How many tiles of one chunk contains in each dimension. Should be a power of 2 for easier calculations.
-    constexpr int TILE_CHUNK_SIZE = 32;
-
     // enum class TileFlags : uint8_t {
     //     None = 0,
     //     Animated = 1 << 0,
@@ -19,17 +16,17 @@ namespace PRL {
     //     // Add more flags as needed
     // };
 
-    using TileMapTileID = int16_t;
-    using TileMapLayerID = uint8_t;
+    using TileID = int16_t;
+    using LayerID = uint8_t;
 
     class Tile {
     public:
-        Tile() : ID(0), textureHandle({0}), animationHandle({0}), animated(false) {}
+        Tile() : ID(0) {}
         
-        TileMapTileID ID;
-        TextureHandle textureHandle;
-        AnimationHandle animationHandle;
-        bool animated;
+        TileID ID;
+        // TextureHandle textureHandle;
+        // AnimationHandle animationHandle;
+        // bool animated;
     };
 
     class TileLayer {
@@ -39,6 +36,7 @@ namespace PRL {
         ~TileLayer() = default;
 
         std::string name;
+        LayerID ID;
         bool visible;
     };
 
@@ -54,6 +52,7 @@ namespace PRL {
 
         bool dirty = true;
     };
+
 
     class TileMap : PRLObject {
     public:
@@ -76,7 +75,7 @@ namespace PRL {
         }
 
         //! \brief Get tile by tile grid coordinates
-        inline Tile& atGrid(TileMapLayerID layer, int x, int y) {
+        inline Tile& atGrid(LayerID layer, int x, int y) {
             assert(layer < layers.size());
             assert(x >= 0 && x < mapSize.x);
             assert(y >= 0 && y < mapSize.y);
@@ -87,7 +86,7 @@ namespace PRL {
         }
         
         //! \brief Get tile by world coordinates
-        inline Tile& atWorld(TileMapLayerID layer, PosType worldX, PosType worldY)
+        inline Tile& atWorld(LayerID layer, PosType worldX, PosType worldY)
         {
             return atGrid(layer, 
                 static_cast<int>(worldX / tileSize.x),
@@ -103,6 +102,9 @@ namespace PRL {
         std::vector<TileChunk> chunks;
 
         static inline size_t instanceCount() noexcept { return instanceCount_; }
+        
+        //! \brief How many tiles of one chunk contains in each dimension. Should be a power of 2 for easier calculations.
+        constexpr static int TILE_CHUNK_SIZE = 32;
     
     private:
         void loadPropertiesSection_(const std::vector<std::string>& lines, std::vector<std::string>& renderOrder);
@@ -114,39 +116,6 @@ namespace PRL {
 
         static size_t instanceCount_;
     };
-
-    ///// Old implementation
-    // class TileMap {
-    // public:
-    //     TileMap();
-    //     TileMap(const std::string& tileSetTextureID, float mapScale);
-    //     ~TileMap() = default;
-
-    //     void loadMap(const std::string& fileName, int tileSetTilesCountX); // Load the map from a file
-    //     // Notes: the map file should be as follows (note no spaces):
-    //     // nTilesX,nTilesY,tileSize,collLayer   <--- Size of the map, size of tile, and 0 or 1 for absence / presence of collision layer
-    //     // tileID,tileID, ... (nTilesX)         <--- Start of Layer 0 (main layer)
-    //     // tileID,tileID, ... (nTilesX)
-    //     // ...
-    //     // tileID,tileID, ... (nTilesX)         <--- End of Layer 0 (main layer)
-    //     //                                      <--- Blank line
-    //     // collID,collID, ... (nTilesX)         <--- Start of Layer 1 (collision layer)
-    //     // collID,collID, ... (nTilesX)    
-    //     // ...
-    //     // collID,collID, ... (nTilesX)         <--- End of Layer 1 (collision layer)
-
-    // private:
-    //     void addTile_(int srcX, int srcY, PosType x, PosType y, int collID);
-
-    //     int mapSizeX_;
-    //     int mapSizeY_;
-    //     int tileSize_;
-    //     float mapScale_;
-    //     float scaledSize_;
-    //     const std::string tileSetTextureID_;
-    //     std::vector<std::vector<int>> tileIDMap_;
-    //     std::vector<std::vector<uint8_t>> collLayer_;
-    // };
 
 } // namespace PRL
 
