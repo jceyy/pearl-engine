@@ -32,6 +32,9 @@ namespace PRL {
     using TextureID = std::string;
     using AnimationID = std::string;
 
+    using TileID = int16_t;
+    using LayerID = uint8_t;
+
 } // namespace PRL
 
 #endif // TYPES_HPP_INCLUDED

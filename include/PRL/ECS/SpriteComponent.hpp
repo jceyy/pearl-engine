@@ -10,7 +10,7 @@ namespace PRL {
 class SpriteComponent : public Component {
 public:
     SpriteComponent();
-    SpriteComponent(const TextureID& textureName);
+    SpriteComponent(const TextureID& textureName, const std::string& regionName = "");
     SpriteComponent(const SpriteComponent& other);
     ~SpriteComponent();
     SpriteComponent(SpriteComponent&& other) noexcept = default;
@@ -20,7 +20,7 @@ public:
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }
     
     TextureHandle textureHandle;
-    size_t layer;
+    LayerID layer;
     size_t region;
     SDL_RendererFlip spriteFlip;
     bool visible;

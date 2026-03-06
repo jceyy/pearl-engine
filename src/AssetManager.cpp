@@ -61,9 +61,8 @@ void AssetManager::addAsset(const std::string& assetID, const std::string& datFi
 
     // Load different assets based on sections
     TextureAsset tempAsset;
-    std::unordered_map<std::string, std::size_t> regionNames;
     loadTextureSection_(datFile, sectionLines["[texture]"], tempAsset);
-    loadSpriteSection_(datFile, sectionLines["[sprites]"], tempAsset, regionNames);
+    loadSpriteSection_(datFile, sectionLines["[sprites]"], tempAsset);
 
     // Assign a new texture asset slot
     size_t textureIndex;
@@ -86,7 +85,7 @@ void AssetManager::addAsset(const std::string& assetID, const std::string& datFi
     // Animations
     std::vector<AnimationAsset> tempAnimations;
     std::vector<std::string> animNames;
-    loadAnimationSection_(datFile, sectionLines["[animations]"], textureIndex, tempAnimations, animNames, regionNames);
+    loadAnimationSection_(datFile, sectionLines["[animations]"], textureIndex, tempAnimations, animNames, textureAssetSlots_[textureIndex].asset);
     for (size_t i(0); i < tempAnimations.size(); ++i) {
         // Assign a new animation asset slot
         size_t animIndex;
@@ -160,7 +159,7 @@ void AssetManager::loadTextureSection_(const string& datFile, const vector<strin
     return;
 }
 
-void AssetManager::loadSpriteSection_(const string& datFile, const vector<string>& lines, TextureAsset& tempAsset, std::unordered_map<std::string, std::size_t>& regionNames) {
+void AssetManager::loadSpriteSection_(const string& datFile, const vector<string>& lines, TextureAsset& tempAsset) {
     if (lines.empty()) {
         PRL::Logging::err("No lines in [sprites] section of asset data file : " + datFile, "PRL::AssetManager::loadSpriteSection_");
         return;
@@ -233,7 +232,7 @@ void AssetManager::loadSpriteSection_(const string& datFile, const vector<string
 
             }
             tempAsset.regions.emplace_back(x, y, w, h, sx, sy, px, py);
-            regionNames.emplace(sprite_name, nSprites++);
+            tempAsset.regionNames.emplace(sprite_name, nSprites++);
             // Map automatically checks for duplicate keys, so this will ensure sprite names are unique
         }
     }
@@ -241,7 +240,7 @@ void AssetManager::loadSpriteSection_(const string& datFile, const vector<string
 }
 
 void AssetManager::loadAnimationSection_(const std::string& datFile, const std::vector<std::string>& lines, std::size_t textureIndex, std::vector<AnimationAsset>& tempAssets, 
-    std::vector<std::string>& animNames, const std::unordered_map<std::string, std::size_t>& regionNames) {
+    std::vector<std::string>& animNames, const TextureAsset& textureAsset) {
     if (lines.empty()) return;
 
     tempAssets.clear(); // should already be empty but just to be safe
@@ -279,11 +278,11 @@ void AssetManager::loadAnimationSection_(const std::string& datFile, const std::
         std::vector<std::size_t> frameRegions;
         for (size_t i(0); i < frameNames.size(); ++i) {
             const std::string& regName = frameNames[i];
-            auto it = regionNames.find(regName);
-            if (it != regionNames.end()) {
+            auto it = textureAsset.regionNames.find(regName);
+            if (it != textureAsset.regionNames.end()) {
                 frameRegions.push_back(it->second);
             }
-            if (it == regionNames.end()) {
+            if (it == textureAsset.regionNames.end()) {
                 PRL::Logging::err("Frame '" + regName + "' not found in texture regions when reading animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_");
                 continue;
             }

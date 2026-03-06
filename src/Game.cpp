@@ -88,8 +88,8 @@ void Game::init() {
     // tileMap = new TileMap("terrain3", 2);
     // tileMap->loadMap("assets/map3.map", 10);
 
-    player->addComponent<TransformComponent>(250, 300, 4.0, 4.0, -45);
-    player->addComponent<SpriteComponent>("player");
+    player->addComponent<TransformComponent>(250, 300, 4.0, 4.0, 0);
+    player->addComponent<SpriteComponent>("player", "walk4");
     player->addComponent<AnimationComponent>("player.idle");
     // player.addComponent<KeyboardController>();
     // player.addComponent<ColliderComponent>("player");
@@ -188,19 +188,20 @@ void Game::handleEvents() {
         playerTransform.position.y = Core::screenSize.y / 2 - textureHeight / 2;
     }
 
-
-    if (!keystates[SDL_SCANCODE_RIGHT] && !keystates[SDL_SCANCODE_LEFT] && !keystates[SDL_SCANCODE_UP] && !keystates[SDL_SCANCODE_DOWN] &&
-        !keystates[SDL_SCANCODE_S] && !keystates[SDL_SCANCODE_W] && !keystates[SDL_SCANCODE_A] && !keystates[SDL_SCANCODE_D]){
-        if (player->getComponent<AnimationComponent>().animHandle != idleAnim){
-            player->getComponent<AnimationComponent>().setHandle(idleAnim);
+    if (player->hasComponent<AnimationComponent>()) {
+        if (!keystates[SDL_SCANCODE_RIGHT] && !keystates[SDL_SCANCODE_LEFT] && !keystates[SDL_SCANCODE_UP] && !keystates[SDL_SCANCODE_DOWN] &&
+            !keystates[SDL_SCANCODE_S] && !keystates[SDL_SCANCODE_W] && !keystates[SDL_SCANCODE_A] && !keystates[SDL_SCANCODE_D]){
+            if (player->getComponent<AnimationComponent>().animHandle != idleAnim){
+                player->getComponent<AnimationComponent>().setHandle(idleAnim);
+            }
+        }
+        else {
+            if (player->getComponent<AnimationComponent>().animHandle != walkAnim){
+                player->getComponent<AnimationComponent>().setHandle(walkAnim);
+            }
         }
     }
-    else {
-        if (player->getComponent<AnimationComponent>().animHandle != walkAnim){
-            player->getComponent<AnimationComponent>().setHandle(walkAnim);
-        }
-    }
-
+    
     // Apply movement
     unitDirection.normalize();
     playerTransform.position += unitDirection * moveSpeed;

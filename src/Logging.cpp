@@ -40,7 +40,7 @@ namespace PRL {
             *errstream_ << codelocation << " : ";
         }
         *errstream_ << message << std::endl;
-        SDL_Delay(2000); // Temporary delay for error visibility
+        SDL_Delay(5000); // Temporary delay for error visibility
         exit(EXIT_FAILURE);
     }
 

@@ -16,17 +16,32 @@ namespace PRL {
     //     // Add more flags as needed
     // };
 
-    using TileID = int16_t;
-    using LayerID = uint8_t;
-
     class Tile {
     public:
         Tile() : ID(0) {}
+        Tile(TileID ID) : ID(ID) {}
+        ~Tile() = default;
         
         TileID ID;
-        // TextureHandle textureHandle;
-        // AnimationHandle animationHandle;
-        // bool animated;
+
+        constexpr static TileID maxTileID = std::numeric_limits<TileID>::max() - 1;
+        constexpr static TileID emptyTileID = std::numeric_limits<TileID>::max();
+    };
+
+    class TileDefinition
+    {
+    public:
+        TileDefinition() : texture({0}), animation({0}), textureRegion(0), animated(false), inUse(false) {}
+        TileDefinition(bool animated, TextureHandle texture, uint16_t textureRegion, AnimationHandle animation)
+            : texture(texture), animation(animation), textureRegion(textureRegion), animated(animated), inUse(true) {}
+        ~TileDefinition() = default;
+
+        TextureHandle texture;
+        AnimationHandle animation;
+        uint16_t textureRegion;
+        SDL_RendererFlip flip;
+        bool animated;
+        bool inUse;
     };
 
     class TileLayer {
@@ -42,15 +57,16 @@ namespace PRL {
 
     class TileChunk {
     public:
-        TileChunk() : chunkCoord(0, 0), layerTiles(), dirty(true) {}
+        TileChunk() : chunkCoord(0, 0), layerTiles() {}
+        TileChunk(int chunkX, int chunkY) : chunkCoord(chunkX, chunkY), layerTiles() {
+            assert(chunkX >= 0 && chunkY >= 0);
+        }
         
         //! \brief Chunk coordinates in the chunk grid, not tile grid
         Vec2D<int> chunkCoord;
 
         // one tile array per layer
         std::vector<std::vector<Tile>> layerTiles;
-
-        bool dirty = true;
     };
 
 
@@ -66,40 +82,16 @@ namespace PRL {
         void loadMap(const std::string& fileName);
 
         //! \brief Get chunk by chunk coordinates
-        inline TileChunk& getChunk(int chunkX, int chunkY) {
-            assert(chunkX >= 0 && chunkX < chunkCount.x);
-            assert(chunkY >= 0 && chunkY < chunkCount.y);
-
-            size_t chunkIndex = chunkY * chunkCount.x + chunkX;
-            return chunks[chunkIndex];
-        }
+        inline TileChunk& getChunk(int chunkX, int chunkY);
 
         //! \brief Get tile by tile grid coordinates
-        inline Tile& atGrid(LayerID layer, int x, int y) {
-            assert(layer < layers.size());
-            assert(x >= 0 && x < mapSize.x);
-            assert(y >= 0 && y < mapSize.y);
-
-            // chunks are stored in a 1D vector, 2D maps to it reading left to right, top to bottom
-            size_t chunkIndex = (y / TILE_CHUNK_SIZE) * chunkCount.x + (x / TILE_CHUNK_SIZE);
-            return chunks[chunkIndex].layerTiles[layer][x + y * chunkCount.x]; 
-        }
+        inline Tile& atGrid(LayerID layer, int x, int y);
         
         //! \brief Get tile by world coordinates
-        inline Tile& atWorld(LayerID layer, PosType worldX, PosType worldY)
-        {
-            return atGrid(layer, 
-                static_cast<int>(worldX / tileSize.x),
-                static_cast<int>(worldY / tileSize.y)
-            );
-        }
-        
-        Vec2D<int> tileSize;    //!< Size of one tile in pixels
-        Vec2D<int> mapSize;     //!< Size of the map in tiles
-        Vec2D<int> chunkCount;  //!< Size of the map in chunks, i.e. number of chunks in each dimension
+        inline Tile& atWorld(LayerID layer, PosType worldX, PosType worldY);
 
-        std::vector<TileLayer> layers;
-        std::vector<TileChunk> chunks;
+        inline Vec2D<int> tileSize() const noexcept { return tileSize_; }
+        inline Vec2D<int> mapSize() const noexcept { return mapSize_; }
 
         static inline size_t instanceCount() noexcept { return instanceCount_; }
         
@@ -108,14 +100,50 @@ namespace PRL {
     
     private:
         void loadPropertiesSection_(const std::vector<std::string>& lines, std::vector<std::string>& renderOrder);
-        void loadTableSection_(const std::vector<std::string>& lines, std::unordered_map<int, std::tuple<TextureHandle, AnimationHandle, bool>>& tileTable);
+        void loadTableSection_(const std::vector<std::string>& lines);
         void loadLayerSections_(const std::vector<std::vector<std::string>>& layerSections, 
             const std::vector<std::string>& renderOrder, const std::unordered_map<int, std::tuple<TextureHandle, AnimationHandle, bool>>& tileTable, 
             std::vector<std::vector<Tile>>& fullTilemap);
         void loadCollisionSection_(const std::vector<std::string>& lines);
 
+        std::vector<TileDefinition> tileDefinitions_; // temporary storage for tilemap data during loading, organized by layer and then by tile ID
+        Vec2D<int> tileSize_;    //!< Size of one tile in pixels
+        Vec2D<int> mapSize_;     //!< Size of the map in tiles
+        Vec2D<int> chunkCount_;  //!< Size of the map in chunks, i.e. number of chunks in each dimension
+
+        std::vector<TileLayer> layers_;
+        std::vector<TileChunk> chunks_;
+        TextureID textureName_;
+
         static size_t instanceCount_;
     };
+
+    // Inline definitions
+    inline Tile& TileMap::atGrid(LayerID layer, int x, int y) {
+        assert(layer < layers_.size());
+        assert(x >= 0 && x < mapSize_.x);
+        assert(y >= 0 && y < mapSize_.y);
+
+        // chunks are stored in a 1D vector, 2D maps to it reading left to right, top to bottom
+        size_t chunkIndex = (y / TILE_CHUNK_SIZE) * chunkCount_.x + (x / TILE_CHUNK_SIZE);
+        return chunks_[chunkIndex].layerTiles[layer][x + y * chunkCount_.x]; 
+    }
+
+    inline Tile& TileMap::atWorld(LayerID layer, PosType worldX, PosType worldY)
+    {
+        return atGrid(layer, 
+            static_cast<int>(worldX / tileSize_.x),
+            static_cast<int>(worldY / tileSize_.y)
+        );
+    }
+
+    inline TileChunk& TileMap::getChunk(int chunkX, int chunkY) {
+            assert(chunkX >= 0 && chunkX < chunkCount_.x);
+            assert(chunkY >= 0 && chunkY < chunkCount_.y);
+
+            size_t chunkIndex = chunkY * chunkCount_.x + chunkX;
+            return chunks_[chunkIndex];
+        }
 
 } // namespace PRL
 

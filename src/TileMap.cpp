@@ -12,7 +12,7 @@ namespace PRL {
 
 size_t TileMap::instanceCount_ = 0;
 
-TileMap::TileMap() : tileSize(0, 0), mapSize(0, 0), chunkCount(0, 0), layers(), chunks() {
+TileMap::TileMap() : tileSize_(0, 0), mapSize_(0, 0), chunkCount_(0, 0), layers_(), chunks_() {
         instanceCount_++;
 }
 
@@ -21,10 +21,10 @@ TileMap::~TileMap() {
 }
 
 void TileMap::loadMap(const std::string& fileName) {
-    if (layers.size() > 0)
-        layers.clear();
-    if (chunks.size() > 0)
-        chunks.clear();
+    if (layers_.size() > 0)
+        layers_.clear();
+    if (chunks_.size() > 0)
+        chunks_.clear();
 
     std::ifstream mapStream(fileName);
     if (!mapStream) {
@@ -85,7 +85,7 @@ void TileMap::loadMap(const std::string& fileName) {
     // Load all sections in the file
     return;
     loadPropertiesSection_(sectionLines["[properties]"], renderOrder);
-    loadTableSection_(sectionLines["[table]"], tileTable);
+    loadTableSection_(sectionLines["[table]"]);
     loadLayerSections_(layerSections, renderOrder, tileTable, fullTilemap);
     loadCollisionSection_(sectionLines["[collision]"]);
     
@@ -96,7 +96,7 @@ void TileMap::loadMap(const std::string& fileName) {
 
 void TileMap::loadPropertiesSection_(const std::vector<std::string>& lines, std::vector<std::string>& renderOrder) {
     if (lines.empty()) {
-        PRL::Logging::err("No lines in [properties] section of tilemap data file", "TileMap::loadPropertiesSection_");
+        PRL::Logging::err("No lines in [properties] section of tilemap data file", "PRL::TileMap::loadPropertiesSection_");
         return;
     }
     if (renderOrder.size() > 0) {
@@ -104,17 +104,17 @@ void TileMap::loadPropertiesSection_(const std::vector<std::string>& lines, std:
     }
 
     std::string discard, layerName;
-    mapSize = Vec2D<int>(0, 0);
+    mapSize_ = Vec2D<int>(0, 0);
     for (const auto& l : lines) {
         std::istringstream iss(l);
         if (l.find("map_size") == 0) {
-            if (!(iss >> discard >> mapSize.x >> mapSize.y)) {
-                Logging::err("Invalid map size format in tilemap data file", "TileMap::loadPropertiesSection_");
+            if (!(iss >> discard >> mapSize_.x >> mapSize_.y)) {
+                Logging::err("Invalid map size format in tilemap data file", "PRL::TileMap::loadPropertiesSection_");
                 continue;
             }
         } else if (l.find("render_order") == 0) {
             if (!(iss >> discard >> layerName)) {
-                Logging::err("Invalid render order format in tilemap data file", "TileMap::loadPropertiesSection_");
+                Logging::err("Invalid render order format in tilemap data file", "PRL::TileMap::loadPropertiesSection_");
                 continue;
             }
             else {
@@ -123,17 +123,25 @@ void TileMap::loadPropertiesSection_(const std::vector<std::string>& lines, std:
                     renderOrder.push_back(layerName);
                 }
             }
-        } 
-        else {
-            Logging::err("Unknown property '" + l + "' in tilemap data file", "TileMap::loadPropertiesSection_");
+        } else if (l.find("texture_name") == 0) {
+            if (!(iss >> discard >> textureName_)) {
+                Logging::err("Invalid texture name format in tilemap data file", "PRL::TileMap::loadPropertiesSection_");
+                continue;
+            }
+        } else {
+            Logging::err("Unknown property '" + l + "' in tilemap data file", "PRL::TileMap::loadPropertiesSection_");
             continue;
         }
     }
 
-    if (mapSize.x <= 0 || mapSize.y <= 0) {
-        Logging::err("Invalid map size in tilemap data file", "TileMap::loadPropertiesSection_");
+    if (mapSize_.x <= 0 || mapSize_.y <= 0) {
+        Logging::err("Invalid map size in tilemap data file", "PRL::TileMap::loadPropertiesSection_");
     }
 
+    // Check if the texture name is valid
+    if (textureName_.empty() || Core::getAssetManager().hasTexture(textureName_) == false) {
+        Logging::err("Texture name not specified in tilemap data file", "PRL::TileMap::loadPropertiesSection_");
+    }
     return;
 }
 
@@ -141,12 +149,12 @@ void TileMap::loadLayerSections_(const std::vector<std::vector<std::string>>& la
                                  const std::unordered_map<int, std::tuple<TextureHandle, AnimationHandle, bool>>& tileTable,
                                  std::vector<std::vector<Tile>>& fullTilemap) {
     if (layerSections.empty()) {
-        PRL::Logging::err("No layer sections found in tilemap data file", "TileMap::loadLayerSections_");
+        PRL::Logging::err("No layer sections found in tilemap data file", "PRL::TileMap::loadLayerSections_");
         return;
     }
 
     if (renderOrder.size() != layerSections.size()) {
-        Logging::err("Number of layers in render order does not match number of layer sections in tilemap data file", "TileMap::loadLayerSections_");
+        Logging::err("Number of layers in render order does not match number of layer sections in tilemap data file", "PRL::TileMap::loadLayerSections_");
         return;
     }
 
@@ -158,19 +166,19 @@ void TileMap::loadLayerSections_(const std::vector<std::vector<std::string>>& la
     std::unordered_map<std::string, std::vector<std::string>> layerSectionsMap;
     for (size_t i(0); i < layerSections.size(); ++i) {
         if (layerSections[i].empty()) {
-            Logging::err("Empty layer section found in tilemap data file", "TileMap::loadLayerSections_");
+            Logging::err("Empty layer section found in tilemap data file", "PRL::TileMap::loadLayerSections_");
             continue;
         }
         auto layerNameIndex = std::find(layerSections[i].begin(), layerSections[i].end(), "layer_name");
         if (layerNameIndex == layerSections[i].end()) {
-            Logging::err("Current layer section does not contain a line starting with 'layer_name' in tilemap data file", "TileMap::loadLayerSections_");
+            Logging::err("Current layer section does not contain a line starting with 'layer_name' in tilemap data file", "PRL::TileMap::loadLayerSections_");
             continue;
         }
         else {
             // Check if layer name already added to map
             std::string layerName = *(layerNameIndex + 1);
             if (layerSectionsMap.find(layerName) != layerSectionsMap.end()) {
-                Logging::err("Duplicate layer name '" + layerName + "' in tilemap data file", "TileMap::loadLayerSections_");
+                Logging::err("Duplicate layer name '" + layerName + "' in tilemap data file", "PRL::TileMap::loadLayerSections_");
                 continue;
             }
             else {
@@ -187,7 +195,7 @@ void TileMap::loadLayerSections_(const std::vector<std::vector<std::string>>& la
     // Check that layer names in render order are the same as layer names in layer sections
     for (const auto& layerName : renderOrder) {
         if (layerSectionsMap.find(layerName) == layerSectionsMap.end()) {
-            Logging::err("Layer name '" + layerName + "' in render order not found in layer sections of tilemap data file", "TileMap::loadLayerSections_");
+            Logging::err("Layer name '" + layerName + "' in render order not found in layer sections of tilemap data file", "PRL::TileMap::loadLayerSections_");
             continue;
         }
     }
@@ -196,91 +204,105 @@ void TileMap::loadLayerSections_(const std::vector<std::vector<std::string>>& la
     for (size_t i(0); i < renderOrder.size(); ++i) {
         std::string layerName = renderOrder[i];
         const auto& layerLines = layerSectionsMap[layerName];
-        fullTilemap.emplace_back(std::vector<Tile>(mapSize.x * mapSize.y)); // start a new layer in full tilemap
+        fullTilemap.emplace_back(std::vector<Tile>(mapSize_.x * mapSize_.y)); // start a new layer in full tilemap
         
         int nTilesX(0), nTilesY(0);
-        int tileID(-1);
+        long long int tileID(-1);
         for (const auto& l : layerLines) {
             std::istringstream iss(l);
             nTilesX = 0;
             while (iss >> tileID) {
                 // Check limits of tileID with respect to its type representation
-                if (tileID < std::numeric_limits<int16_t>::min() || tileID > std::numeric_limits<int16_t>::max()) {
-                    Logging::err("Tile ID " + std::to_string(tileID) + " out of range for int16_t in tilemap data file", "TileMap::loadLayerSections_");
+                if (tileID < std::numeric_limits<TileID>::min() || tileID > Tile::maxTileID) {
+                    Logging::err("Tile ID " + std::to_string(tileID) + " out of range for TileID in tilemap data file", "PRL::TileMap::loadLayerSections_");
                     continue;
                 }
-                TextureHandle texHandle = std::get<0>(tileTable.at(tileID));
-                AnimationHandle animHandle = std::get<1>(tileTable.at(tileID));
-                bool animated = std::get<2>(tileTable.at(tileID));
-                auto& currentTile = fullTilemap.back()[nTilesX + nTilesY * mapSize.x];
+
+                // Create definition slot if it does not exist, and assign tile data to it
+                if (static_cast<size_t>(tileID) >= tileDefinitions_.size()) {
+                    tileDefinitions_.resize(tileID + 1, TileDefinition());
+                }
+
+                tileDefinitions_[tileID].texture = std::get<0>(tileTable.at(tileID));
+                tileDefinitions_[tileID].animation = std::get<1>(tileTable.at(tileID));
+                tileDefinitions_[tileID].animated = std::get<2>(tileTable.at(tileID));
+                auto& currentTile = fullTilemap.back()[nTilesX + nTilesY * mapSize_.x];
                 currentTile.ID = tileID;
-                cout << "[DEBUG] To be changed here in TileMap::loadLayerSections_: tileID=" << tileID << endl;
+                cout << "[DEBUG] To be changed here in PRL::TileMap::loadLayerSections_: tileID=" << tileID << endl;
                 // currentTile.textureHandle = texHandle;
                 // currentTile.animationHandle = animHandle;
                 // currentTile.animated = animated;
                 nTilesX++;
             }
-            if (nTilesX != mapSize.x) {
+            if (nTilesX != mapSize_.x) {
                 Logging::err("Number of tiles in x direction does not match map size in tilemap data file (" + 
-                    std::to_string(nTilesX) + " vs expected " + std::to_string(mapSize.x) + ")", "TileMap::loadLayerSections_");
+                    std::to_string(nTilesX) + " vs expected " + std::to_string(mapSize_.x) + ")", "PRL::TileMap::loadLayerSections_");
             }
             nTilesY++;
         }
-        if (nTilesY != mapSize.y) {
+        if (nTilesY != mapSize_.y) {
             Logging::err("Number of tiles in y direction does not match map size in tilemap data file (" + 
-                std::to_string(nTilesY) + " vs expected " + std::to_string(mapSize.y) + ")", "TileMap::loadLayerSections_");
+                std::to_string(nTilesY) + " vs expected " + std::to_string(mapSize_.y) + ")", "PRL::TileMap::loadLayerSections_");
         }
     }
 }
 
 
-void TileMap::loadTableSection_(const std::vector<std::string>& lines, std::unordered_map<int, std::tuple<TextureHandle, AnimationHandle, bool>>& tileTable) {
+void TileMap::loadTableSection_(const std::vector<std::string>& lines) {
     // temp
     return;
     if (lines.empty()) {
-        PRL::Logging::err("No lines in [table] section of tilemap data file", "TileMap::loadTableSection_");
+        PRL::Logging::err("No lines in [table] section of tilemap data file", "PRL::TileMap::loadTableSection_");
         return;
     }
 
-    if (!tileTable.empty()) {
-        tileTable.clear();
-    }
-
-    int tileID;
-    std::string discard, assetName;
+    long long tileID;
+    std::string discard, textureName, animName;
     bool animated;
     for (const auto& l : lines) {
         std::istringstream iss(l);
-
-        if (!(iss >> tileID >> discard >> animated >> assetName)) {
+        // # <tileref> texture   anim <0|1> <animation>
+        if (!(iss >> tileID >> textureName >> discard >> animated)) {
             PRL::Logging::err("Unable to read all 4 mandatory fields from [table] section of tilemap data file", "PRL::TileMap::loadTableSection_");
         }
-        TextureHandle textureHandle({0});
+
+        if (tileID < std::numeric_limits<TileID>::min() || tileID > Tile::maxTileID) {
+            Logging::err("Tile ID " + std::to_string(tileID) + " out of range (" 
+                + std::to_string(std::numeric_limits<TileID>::min()) 
+                + " to " + std::to_string(Tile::maxTileID) 
+                + ") for TileID in tilemap data file", "TileMap::loadTableSection_");
+            continue;
+        }
+
+        TextureHandle textureHandle = PRL::Core::getAssetManager().getTextureHandle(textureName);
         AnimationHandle animHandle({0});
         if (animated) {
-            animHandle = PRL::Core::getAssetManager().getAnimationHandle(assetName);
-        } else {
-            textureHandle = PRL::Core::getAssetManager().getTextureHandle(assetName);
+            if (!(iss >> animName)) {
+                PRL::Logging::err("Animated tile entry in [table] section of tilemap data file missing animation name", "PRL::TileMap::loadTableSection_");
+            }
+            animHandle = PRL::Core::getAssetManager().getAnimationHandle(animName);
         }
-        tileTable.emplace(tileID, std::make_tuple(textureHandle, animHandle, animated));
+
+        // Create definition slot if it does not exist, and assign tile data to it
+        if (static_cast<size_t>(tileID) >= tileDefinitions_.size()) {
+            tileDefinitions_.resize(tileID + 1, TileDefinition());
+        }
+        tileDefinitions_[tileID].texture = textureHandle;
+        tileDefinitions_[tileID].animation = animHandle;
+        tileDefinitions_[tileID].animated = animated;
+        tileDefinitions_[tileID].inUse = true;
     }
 
     // Check that all tiles have the same size, and report it
     Vec2D<int> tileSize(0, 0);
-    for (size_t i(0); i < tileTable.size(); ++i) {
-        const auto& entry = tileTable.at(i);
-        const auto& textureHandle = std::get<0>(entry);
-        const auto& animHandle = std::get<1>(entry);
-        const TextureAsset* textureAsset = nullptr;
-        const AnimationAsset* animAsset = nullptr;
+    for (size_t i(0); i < tileDefinitions_.size(); ++i) {
+        const auto& def = tileDefinitions_[i];
+        if (!def.inUse) continue;
 
-        if (std::get<2>(entry)) {
-            animAsset = PRL::Core::getAssetManager().getAnimationAsset(animHandle);
-        }
-        else {
-            textureAsset = PRL::Core::getAssetManager().getTextureAsset(textureHandle);
-        }
-
+        const TextureAsset* textureAsset = Core::getAssetManager().getTextureAsset(def.texture);
+        // How is the region set ?
+        // textureAsset->regions.size() > 0 ? tileSize = textureAsset->regions[def.textureRegion].size : tileSize = textureAsset->textureSize;
+        // Here in dev
         if (i == 0) {
             tileSize = {0,0};
         }

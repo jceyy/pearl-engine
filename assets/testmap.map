@@ -3,40 +3,43 @@
 [properties]
 # number of tiles in the map (mandatory)
 map_size 25 30
+# Name of the texture asset
+texture_name tileset
 # define the rendering order (background first, then foreground)
 # default render_order is file declaration order
 render_order layer0 layer1
 
 [table]
 # Correspondance table between tiles numbers and textures or animations (must be already loaded when loading tile map)
-# <tileref> animated <0|1> <sprite|animation>
-     0      animated  0     tile0
-     1      animated  0     tile1
-     2      animated  0     tile2
-     3      animated  0     tile3
-     4      animated  0     tile4
-     5      animated  0     tile5
-     6      animated  0     tile6
-     7      animated  0     tile7
-     8      animated  0     tile8
-     9      animated  0     tile9
-     10     animated  0     tile10
-     11     animated  0     tile11
-     12     animated  0     tile12
-     13     animated  0     tile13
-     14     animated  0     tile14
-     15     animated  0     tile15
-     16     animated  0     tile16
-     17     animated  0     tile17
-     18     animated  0     tile18
-     19     animated  0     tile19
-     20     animated  0     tile20
-     21     animated  0     tile21
-     22     animated  0     tile22
-     23     animated  0     tile23
-     24     animated  0     tile24
-     25     animated  0     tile25
-     26     animated  0     tile26
+# To do : add flip as well <H|V|HV>
+# <tileID>  region    anim <0|1> <animation>
+     0      tile0     anim   0
+     1      tile1     anim   0
+     2      tile2     anim   0
+     3      tile3     anim   0
+     4      tile4     anim   0
+     5      tile5     anim   0
+     6      tile6     anim   0
+     7      tile7     anim   0
+     8      tile8     anim   0
+     9      tile9     anim   0
+     10     tile10    anim   0
+     11     tile11    anim   0
+     12     tile12    anim   0
+     13     tile13    anim   0
+     14     tile14    anim   0
+     15     tile15    anim   0
+     16     tile16    anim   0
+     17     tile17    anim   0
+     18     tile18    anim   0
+     19     tile19    anim   0
+     20     tile20    anim   0
+     21     tile21    anim   0
+     22     tile22    anim   0
+     23     tile23    anim   0
+     24     tile24    anim   0
+     25     tile25    anim   0
+     26     tile26    anim   0
 
 
 [layer]

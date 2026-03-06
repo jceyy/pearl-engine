@@ -64,7 +64,8 @@ public:
         texture(texture), regions(regions), nativeResolution(nativeResolution), textureSize(textureSize), scaleMode(scaleMode) {}
     TextureAsset(const TextureAsset&) = delete;
     TextureAsset(TextureAsset&& other) noexcept : 
-    texture(other.texture), regions(std::move(other.regions)), nativeResolution(other.nativeResolution), textureSize(other.textureSize), scaleMode(other.scaleMode) {
+    texture(other.texture), regions(std::move(other.regions)), regionNames(std::move(other.regionNames)), 
+    nativeResolution(other.nativeResolution), textureSize(other.textureSize), scaleMode(other.scaleMode) {
         other.texture = nullptr; // prevent destructor from freeing the texture
     }
     TextureAsset& operator=(const TextureAsset&) = delete;
@@ -73,6 +74,7 @@ public:
             if (texture) SDL_DestroyTexture(texture); // free existing texture
             texture = other.texture;
             regions = std::move(other.regions);
+            regionNames = std::move(other.regionNames);
             nativeResolution = other.nativeResolution;
             textureSize = other.textureSize;
             scaleMode = other.scaleMode;
@@ -87,6 +89,7 @@ public:
 
     SDL_Texture* texture;
     std::vector<SpriteRegion> regions;
+    std::unordered_map<std::string, std::size_t> regionNames;
     Vec2D<int> nativeResolution;    // internal design resolution
     Vec2D<int> textureSize;
     SDL_ScaleMode scaleMode;
@@ -130,6 +133,10 @@ public:
     TTF_Font* getFont(const std::string& fontID);
     
     // Textures
+    bool inline hasTexture(const std::string& name) const {
+        return textureAssetHandles_.find(name) != textureAssetHandles_.end();
+    }
+
     const inline TextureHandle getTextureHandle(const std::string& name) { 
         auto it = textureAssetHandles_.find(name);
         if (it == textureAssetHandles_.end()) {
@@ -150,6 +157,10 @@ public:
     }
     
     // Animations
+    inline bool hasAnimation(const std::string& name) const {
+        return animationAssetHandles_.find(name) != animationAssetHandles_.end();
+    }
+
     const inline AnimationHandle getAnimationHandle(const std::string& name) {
         auto it = animationAssetHandles_.find(name);
         if (it == animationAssetHandles_.end()) {
@@ -176,8 +187,9 @@ public:
 
 private:
     static void loadTextureSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset);
-    static void loadSpriteSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset, std::unordered_map<std::string, std::size_t>& regionNames);
-    static void loadAnimationSection_(const std::string& datFile, const std::vector<std::string>& lines, std::size_t textureIndex, std::vector<AnimationAsset>& tempAssets, std::vector<std::string>& animNames, const std::unordered_map<std::string, std::size_t>& regionNames);
+    static void loadSpriteSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset);
+    static void loadAnimationSection_(const std::string& datFile, const std::vector<std::string>& lines, std::size_t textureIndex, std::vector<AnimationAsset>& tempAssets, 
+                                      std::vector<std::string>& animNames, const TextureAsset& textureAsset);     
     static void loadTilesetSection_(const std::vector<std::string>& lines);
 
     EntityManager& entityManager_;
