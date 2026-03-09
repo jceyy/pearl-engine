@@ -63,17 +63,19 @@ void Game::init() {
     systemManager.registerSystem<AnimationSystem>();
     systemManager.registerSystem<RenderSystem>();
 
-    // Load objects
+    // Old load objects lines
     // assetManager->addTexture("terrain", "assets/terrain_ss.png");
     // assetManager->addTexture("terrain3", "assets/terrain3.png");
     // assetManager->addTexture("player", "assets/player_anims.png");
-    assetManager.addAsset("player", "assets/player_anims.dat");
 
     // assetManager->addTexture("projectile", "assets/proj.png");
     // assetManager->addTexture("circle", "assets/circle.png");
-    assetManager.addFont("baseFont", "assets/font.ttf", 16);
-
     // assetManager->createProjectile(Vector2D(500, 500), Vector2D(2, 0), 500, 2, "projectile");
+    
+    // Load assets
+    assetManager.addAsset("player", "assets/player_anims.dat");
+    assetManager.addAsset("tileset", "assets/terrain_asset.dat");
+    assetManager.addFont("baseFont", "assets/font.ttf", 16);
 
     // Create entities
     player = &entityManager.addEntity();
@@ -82,12 +84,8 @@ void Game::init() {
     label = &entityManager.addEntity();
     ball1 = &entityManager.addEntity();
 
-    // tileMap = new TileMap("terrain", 2);
-    // tileMap->loadMap("assets/map2.map", 10);
 
-    // tileMap = new TileMap("terrain3", 2);
-    // tileMap->loadMap("assets/map3.map", 10);
-
+    // Compose entities with components
     player->addComponent<TransformComponent>(250, 300, 4.0, 4.0, 0);
     player->addComponent<SpriteComponent>("player", "walk4");
     player->addComponent<AnimationComponent>("player.idle");
@@ -98,6 +96,7 @@ void Game::init() {
     tileMap->addComponent<TileMapComponent>();
     tileMap->getComponent<TileMapComponent>().map.loadMap("assets/testmap.map");
 
+    // Old composition lines
     // ball1.addComponent<TransformComponent>(600, 400, 1);
     // ball1.addComponent<SpriteComponent>("test");
     // ball1.getComponent<SpriteComponent>().setTexture("circle", 16, 16);
@@ -109,7 +108,7 @@ void Game::init() {
 
     entityManager.refresh();
     entityManager.update();
-    PRL::Logging::log("Game initialized", "PRL::Game::init");
+    Logging::log("Game initialized", "Game::init()");
 }
 
 // auto& tiles(entityManager.getGroup(Game::groupMap));
@@ -257,7 +256,7 @@ void Game::update() {
 
 
 void Game::clean() {
-    PRL::Logging::log("Game cleaned", "PRL::Game::clean()");
+    Logging::log("Game cleaned", "Game::clean()");
 }
 
 } // namespace PRL

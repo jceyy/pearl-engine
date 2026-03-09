@@ -1,0 +1,41 @@
+# File player_anim.dat
+
+[texture]
+native_resolution 320 180
+filtering_mode nearest
+file assets/terrain3.png
+
+
+[sprites]
+# General properties
+default_size  1.0 1.0
+default_pivot 0.0 0.0
+
+# <name>         <x> <y> <w> <h>  size <wx> <wy> pivot <px> <py> (size and pivot can be left empty if default is provided)
+tile0            0   0   32  32
+tile1            32  0   32  32
+tile2            64  0   32  32   
+tile3            96  0   32  32
+tile4            128 0   32  32
+tile5            160 0   32  32 
+tile6            192 0   32  32
+tile7            224 0   32  32
+tile8            256 0   32  32   
+tile9            288 0   32  32
+tile10           0   32  32  32
+tile11           32  32  32  32
+tile12           64  32  32  32   
+tile13           96  32  32  32
+tile14           128 32  32  32
+tile15           160 32  32  32 
+tile16           192 32  32  32
+tile17           224 32  32  32
+tile18           256 32  32  32   
+tile19           288 32  32  32
+tile20           0   64  32  32
+tile21           32  64  32  32
+tile22           64  64  32  32   
+tile23           96  64  32  32
+tile24           128 64  32  32
+tile25           160 64  32  32 
+

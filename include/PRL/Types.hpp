@@ -29,9 +29,10 @@ namespace PRL {
         static size_t instanceCount_;
     };
 
-    using TextureID = std::string;
-    using AnimationID = std::string;
+    using TextureID = std::string; // TextureAssetName
+    using AnimationID = std::string; // AnimationAssetName
 
+    using TextureRegionID = uint16_t; // index of region in texture asset
     using TileID = int16_t;
     using LayerID = uint8_t;
 

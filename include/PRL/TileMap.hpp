@@ -18,7 +18,7 @@ namespace PRL {
 
     class Tile {
     public:
-        Tile() : ID(0) {}
+        Tile() : ID(emptyTileID) {}
         Tile(TileID ID) : ID(ID) {}
         ~Tile() = default;
         
@@ -32,13 +32,13 @@ namespace PRL {
     {
     public:
         TileDefinition() : texture({0}), animation({0}), textureRegion(0), animated(false), inUse(false) {}
-        TileDefinition(bool animated, TextureHandle texture, uint16_t textureRegion, AnimationHandle animation)
+        TileDefinition(bool animated, TextureHandle texture, TextureRegionID textureRegion, AnimationHandle animation)
             : texture(texture), animation(animation), textureRegion(textureRegion), animated(animated), inUse(true) {}
         ~TileDefinition() = default;
 
         TextureHandle texture;
         AnimationHandle animation;
-        uint16_t textureRegion;
+        TextureRegionID textureRegion;
         SDL_RendererFlip flip;
         bool animated;
         bool inUse;
@@ -51,7 +51,7 @@ namespace PRL {
         ~TileLayer() = default;
 
         std::string name;
-        LayerID ID;
+        // LayerID ID;
         bool visible;
     };
 
@@ -101,10 +101,10 @@ namespace PRL {
     private:
         void loadPropertiesSection_(const std::vector<std::string>& lines, std::vector<std::string>& renderOrder);
         void loadTableSection_(const std::vector<std::string>& lines);
-        void loadLayerSections_(const std::vector<std::vector<std::string>>& layerSections, 
-            const std::vector<std::string>& renderOrder, const std::unordered_map<int, std::tuple<TextureHandle, AnimationHandle, bool>>& tileTable, 
-            std::vector<std::vector<Tile>>& fullTilemap);
+        void loadLayerSections_(std::vector<std::vector<std::string>>& layerSections, 
+            const std::vector<std::string>& renderOrder, std::vector<std::vector<Tile>>& fullTilemap);
         void loadCollisionSection_(const std::vector<std::string>& lines);
+        void constructChunks_(const std::vector<std::vector<Tile>>& fullTilemap);
 
         std::vector<TileDefinition> tileDefinitions_; // temporary storage for tilemap data during loading, organized by layer and then by tile ID
         Vec2D<int> tileSize_;    //!< Size of one tile in pixels
@@ -113,10 +113,13 @@ namespace PRL {
 
         std::vector<TileLayer> layers_;
         std::vector<TileChunk> chunks_;
-        TextureID textureName_;
+        std::string textureName_;
+        bool hasCollisionLayer_;
 
         static size_t instanceCount_;
     };
+
+
 
     // Inline definitions
     inline Tile& TileMap::atGrid(LayerID layer, int x, int y) {

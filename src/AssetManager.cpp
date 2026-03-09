@@ -25,15 +25,24 @@ AssetManager::~AssetManager() {
 }
 
 void AssetManager::addAsset(const std::string& assetID, const std::string& datFile) {
-    assert(!assetID.empty());
-    assert(!datFile.empty());
+    // Non-empty strings for assetID and datFile path
+    if (assetID.empty() || datFile.empty()) {
+        Logging::err("Asset ID and data file path cannot be empty.", "PRL::AssetManager::addAsset()");
+        return;
+    }
+
+    // Lookup to prevent duplicate asset IDs
+    if (textureAssetHandles_.find(assetID) != textureAssetHandles_.end()) {
+        Logging::err("In loading '" + datFile + "', asset ID '" + assetID + "' already exists.", "PRL::AssetManager::addAsset()");
+        return;
+    }
 
     std::ifstream in(datFile);
     if (!in) {
-        Logging::err("Could not open asset data file : " + datFile, "PRL::AssetManager::loadAsset");
+        Logging::err("Could not open asset data file : " + datFile, "PRL::AssetManager::addAsset()");
         return;
     }
-    Logging::log("Loading asset from file : " + datFile, "PRL::AssetManager::loadAsset");
+    Logging::log("Loading asset from file : " + datFile, "PRL::AssetManager::addAsset()");
     std::string line;
     std::vector<std::string> lines;
     while (std::getline(in, line)) {
@@ -55,7 +64,7 @@ void AssetManager::addAsset(const std::string& assetID, const std::string& datFi
         }
     }
     if (currentSection.empty()) {
-        Logging::err("No section found in asset data file : " + datFile, "PRL::AssetManager::addTextureAsset");
+        Logging::err("No section found in asset data file : " + datFile, "PRL::AssetManager::addTextureAsset()");
         return;
     }
 
@@ -105,22 +114,11 @@ void AssetManager::addAsset(const std::string& assetID, const std::string& datFi
             AnimationHandle{animIndex, animationAssetSlots_[animIndex].generation}
         );
     }
-
-    // Temp : cout all keys in texture and animationAssetHandles_
-    // Logging::log("Loaded texture assets :");
-    // for (auto it = textureAssetHandles_.begin(); it != textureAssetHandles_.end(); ++it) {
-    //     Logging::log("> " + it->first);
-    // }
-    // Logging::log("Loaded animation assets :");
-    // for (auto it = animationAssetHandles_.begin(); it != animationAssetHandles_.end(); ++it) {
-    //     Logging::log("> " + it->first + " with " + to_string(animationAssetSlots_[it->second.index].asset.frameRegions.size()) + " frames");
-    // }
-    return;
 }
 
 void AssetManager::loadTextureSection_(const string& datFile, const vector<string>& lines, TextureAsset& tempAsset) {
     if (lines.empty()) {
-        PRL::Logging::err("No lines in [texture] section of asset data file : " + datFile, "PRL::AssetManager::loadTextureSection_");
+        PRL::Logging::err("No lines in [texture] section of asset data file : " + datFile, "PRL::AssetManager::loadTextureSection_()");
         return;
     }
 
@@ -130,25 +128,25 @@ void AssetManager::loadTextureSection_(const string& datFile, const vector<strin
         // Properties are native_resolution, and filtering mode
         if (l.find("native_resolution") == 0) {
             if (!(iss >> discard >> tempAsset.nativeResolution.x >> tempAsset.nativeResolution.y)) {
-                Logging::err("Invalid native resolution format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_");
+                Logging::err("Invalid native resolution format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_()");
                 continue;
             }
         } else if (l.find("filtering_mode") == 0) {
             std::string mode;
             if (!(iss >> discard >> mode)) {
-                Logging::err("Invalid filtering mode format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_");
+                Logging::err("Invalid filtering mode format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_()");
                 continue;
             }
             if (mode == "nearest") tempAsset.scaleMode = SDL_ScaleModeNearest;
             else if (mode == "linear") tempAsset.scaleMode = SDL_ScaleModeLinear;
             else if (mode == "best" || mode == "anisotropic") tempAsset.scaleMode = SDL_ScaleModeBest;
             else {
-                Logging::err("Unknown filtering mode '" + mode + "' in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_");
+                Logging::err("Unknown filtering mode '" + mode + "' in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_()");
                 continue;
             }
         } else if (l.find("file") == 0) {
             if (!(iss >> discard >> textureFile)) {
-                Logging::err("Invalid texture file format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_");
+                Logging::err("Invalid texture file format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_()");
                 continue;
             }
         }
@@ -156,12 +154,21 @@ void AssetManager::loadTextureSection_(const string& datFile, const vector<strin
 
     // All section lines parsed
     tempAsset.texture = TextureManager::loadTexture(textureFile, tempAsset.textureSize.x, tempAsset.textureSize.y);
+    #if SDL_VERSION_ATLEAST(3,2,0)
+    if (tempAsset.texture) {
+        if (!SDL_SetTextureScaleMode(tempAsset.texture, tempAsset.scaleMode)) {
+            Logging::err("Failed to set texture scale mode for texture '" + textureFile + "' in asset data file " + datFile + " : " + SDL_GetError(), "PRL::AssetManager::loadTextureSection_()");
+        }
+    } else {
+        Logging::err("Failed to load texture '" + textureFile + "' in asset data file " + datFile + " : " + SDL_GetError(), "PRL::AssetManager::loadTextureSection_()");
+    }
+    #endif // SDL3 -- not doing the change yet
     return;
 }
 
 void AssetManager::loadSpriteSection_(const string& datFile, const vector<string>& lines, TextureAsset& tempAsset) {
     if (lines.empty()) {
-        PRL::Logging::err("No lines in [sprites] section of asset data file : " + datFile, "PRL::AssetManager::loadSpriteSection_");
+        PRL::Logging::err("No lines in [sprites] section of asset data file : " + datFile, "PRL::AssetManager::loadSpriteSection_()");
         return;
     }
 
@@ -176,14 +183,14 @@ void AssetManager::loadSpriteSection_(const string& datFile, const vector<string
 
         if (l.find("default_size") == 0) {
             if (!(iss >> discard >> sxdef >> sydef)) {
-                Logging::err("Invalid default size format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_");
+                Logging::err("Invalid default size format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_()");
                 continue;
             } else {
                 defaultSizeSet = true;
             }
         } else if (l.find("default_pivot") == 0) {
             if (!(iss >> discard >> pxdef >> pydef)) {
-                Logging::err("Invalid default pivot format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_");
+                Logging::err("Invalid default pivot format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_()");
                 continue;
             } else {
                 defaultPivotSet = true;
@@ -192,18 +199,18 @@ void AssetManager::loadSpriteSection_(const string& datFile, const vector<string
         else {
             // if (!(iss >> sprite_name >> x >> y >> w >> h >> discard >> sx >> sy >> discard >> px >> py)) {
             if (!(iss >> sprite_name >> x >> y >> w >> h)) {
-                Logging::err("Invalid sprite region format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_");
+                Logging::err("Invalid sprite region format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_()");
                 continue;
             } else if (iss >> discard) { // optional size and pivot data
                 if (discard == "size") {
                     if (!(iss >> sx >> sy)) {
-                        Logging::err("Invalid sprite size format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_");
+                        Logging::err("Invalid sprite size format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_()");
                         continue;
                     }
                 } else {
                     if (!defaultSizeSet) {
                         Logging::err("Sprite size not specified for sprite '" + sprite_name + "' in asset data file " + datFile + " and no default size set", 
-                            "PRL::AssetManager::loadSpriteSection_");
+                            "PRL::AssetManager::loadSpriteSection_()");
                         continue;
                     }
                     sx = sxdef;
@@ -212,13 +219,13 @@ void AssetManager::loadSpriteSection_(const string& datFile, const vector<string
 
                 if (discard == "pivot") {
                     if (!(iss >> px >> py)) {
-                        Logging::err("Invalid sprite pivot format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_");
+                        Logging::err("Invalid sprite pivot format in asset data file " + datFile, "PRL::AssetManager::loadSpriteSection_()");
                         continue;
                     }
                 } else {
                     if (!defaultPivotSet) {
                         Logging::err("Sprite pivot not specified for sprite '" + sprite_name + "' in asset data file " + datFile + " and no default pivot set", 
-                            "PRL::AssetManager::loadSpriteSection_");
+                            "PRL::AssetManager::loadSpriteSection_()");
                         continue;
                     }
                     px = pxdef;
@@ -251,18 +258,18 @@ void AssetManager::loadAnimationSection_(const std::string& datFile, const std::
         std::istringstream iss(l);
 
         if (!(iss >> animName)) {
-            PRL::Logging::err("Unable to read animation name in asset datafile " + datFile, "AssetManager::loadAnimationSection_");
+            PRL::Logging::err("Unable to read animation name in asset datafile " + datFile, "AssetManager::loadAnimationSection_()");
             continue;
         }
         if (!(iss >> discard >> fps >> discard >> looping)) {
-            PRL::Logging::err("Unable to load fps or looping properties when reading animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_");
+            PRL::Logging::err("Unable to load fps or looping properties when reading animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_()");
             continue;
         }
 
         // Now read frames until end of line
         std::vector<std::string> frameNames;
         if (!(iss >> discard) || discard != "frames") {
-            PRL::Logging::err("Missing 'frames' keyword in animation data for animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_");
+            PRL::Logging::err("Missing 'frames' keyword in animation data for animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_()");
             continue;
         }
 
@@ -270,7 +277,7 @@ void AssetManager::loadAnimationSection_(const std::string& datFile, const std::
             frameNames.push_back(frame);
         }
         if (frameNames.empty()) {
-            PRL::Logging::err("No frames specified for animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_");
+            PRL::Logging::err("No frames specified for animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_()");
             continue;
         }
 
@@ -283,7 +290,7 @@ void AssetManager::loadAnimationSection_(const std::string& datFile, const std::
                 frameRegions.push_back(it->second);
             }
             if (it == textureAsset.regionNames.end()) {
-                PRL::Logging::err("Frame '" + regName + "' not found in texture regions when reading animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_");
+                PRL::Logging::err("Frame '" + regName + "' not found in texture regions when reading animation " + animName + " in asset datafile " + datFile, "AssetManager::loadAnimationSection_()");
                 continue;
             }
         }
@@ -292,12 +299,6 @@ void AssetManager::loadAnimationSection_(const std::string& datFile, const std::
         // Construct new asset
         tempAssets.emplace_back(textureIndex, std::move(frameRegions), fps, looping);
     }
-    
-}
-
-void AssetManager::loadTilesetSection_(const std::vector<std::string>& lines) {
-    if (lines.empty()) return;
-    Logging::log("Tileset section loading not implemented yet", "PRL::AssetManager::loadTilesetSection_");
 }
 
 void AssetManager::createProjectile(Vector2D pos, Vector2D vel, float range, float speed, const TextureID& textureID){

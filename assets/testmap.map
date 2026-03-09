@@ -2,12 +2,13 @@
 
 [properties]
 # number of tiles in the map (mandatory)
-map_size 25 30
-# Name of the texture asset
+map_size 25 20
+
+# Name of the texture asset (in the future, will be able to refer to multiple ones, aka multiple tile sets)
 texture_name tileset
-# define the rendering order (background first, then foreground)
-# default render_order is file declaration order
-render_order layer0 layer1
+
+# define the rendering order (from background to foreground)
+render_order layer0
 
 [table]
 # Correspondance table between tiles numbers and textures or animations (must be already loaded when loading tile map)
@@ -45,13 +46,14 @@ render_order layer0 layer1
 [layer]
 # layer name is mandatory
 layer_name layer0
+
 # Number of lines and columns must match the tiles_number property.
 # Multiple spaces or tabs characters can be used in between numbers
 # The number -1 represents the 'empty tile'
 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-14 03 11 -1 -1 -1 -1 -1  4  3  1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-14 14 10 01 04 -1 -1 -1 14  7 14 16 13 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15 
+14  3 11 -1 -1 -1 -1 -1  4  3  1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+14 14 10  1  4 -1 -1 -1 14  7 14 16 13 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 15 
  7 19 -1 -1 -1 -1 -1 -1 14 14  8  6 16  0 15 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 14 -1 -1 -1 -1 15 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  0  0  3  4 -1 -1 -1 -1 
 14 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 

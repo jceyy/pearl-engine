@@ -190,7 +190,7 @@ private:
     static void loadSpriteSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset);
     static void loadAnimationSection_(const std::string& datFile, const std::vector<std::string>& lines, std::size_t textureIndex, std::vector<AnimationAsset>& tempAssets, 
                                       std::vector<std::string>& animNames, const TextureAsset& textureAsset);     
-    static void loadTilesetSection_(const std::vector<std::string>& lines);
+    // static void loadTilesetSection_(const std::vector<std::string>& lines);
 
     EntityManager& entityManager_;
     std::vector<AssetSlot<TextureAsset>> textureAssetSlots_;
