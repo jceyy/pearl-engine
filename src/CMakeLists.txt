@@ -60,12 +60,13 @@ target_sources(prl_library
     ECS/PhysicsComponent.cpp
     ECS/ProjectileComponent.cpp
     ECS/SpriteComponent.cpp
-    ECS/TileComponent.cpp
+    ECS/TileMapComponent.cpp
     ECS/TransformComponent.cpp
     ECS/UILabel.cpp
     ECS/VelocityComponent.cpp
     Systems/AnimationSystem.cpp
     Systems/RenderSystem.cpp
+    Systems/TileMapSystem.cpp
     Systems/Systems.cpp
   PUBLIC
     ${HEADER_LIST}

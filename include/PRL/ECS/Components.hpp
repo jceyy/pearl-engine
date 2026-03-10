@@ -11,7 +11,7 @@
 #include "PhysicsComponent.hpp"
 #include "ProjectileComponent.hpp"
 #include "SpriteComponent.hpp"
-#include "TileComponent.hpp"
+#include "TileMapComponent.hpp"
 #include "UILabel.hpp"
 #include "ButtonComponent.hpp"
 #include "FadeComponent.hpp"

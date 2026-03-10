@@ -10,6 +10,7 @@
 #include "Logging.hpp"
 #include "Systems/RenderSystem.hpp"
 #include "Systems/AnimationSystem.hpp"
+#include "Systems/TileMapSystem.hpp"
 
 /** 
  * Upcoming upgrades :
@@ -62,6 +63,7 @@ void Game::init() {
     // Register systems
     systemManager.registerSystem<AnimationSystem>();
     systemManager.registerSystem<RenderSystem>();
+    systemManager.registerSystem<TileMapSystem>();
 
     // Old load objects lines
     // assetManager->addTexture("terrain", "assets/terrain_ss.png");

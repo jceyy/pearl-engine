@@ -19,11 +19,12 @@ namespace PRL {
     class Tile {
     public:
         Tile() : ID(emptyTileID) {}
-        Tile(TileID ID) : ID(ID) {}
+        Tile(TileID tileID) : ID(tileID) {}
         ~Tile() = default;
         
         TileID ID;
 
+        constexpr static TileID minTileID = 0;
         constexpr static TileID maxTileID = std::numeric_limits<TileID>::max() - 1;
         constexpr static TileID emptyTileID = std::numeric_limits<TileID>::max();
     };
@@ -31,9 +32,9 @@ namespace PRL {
     class TileDefinition
     {
     public:
-        TileDefinition() : texture({0}), animation({0}), textureRegion(0), animated(false), inUse(false) {}
+        TileDefinition() : texture({0}), animation({0}), textureRegion(0), flip(SDL_FLIP_NONE), animated(false), inUse(false) {}
         TileDefinition(bool animated, TextureHandle texture, TextureRegionID textureRegion, AnimationHandle animation)
-            : texture(texture), animation(animation), textureRegion(textureRegion), animated(animated), inUse(true) {}
+            : texture(texture), animation(animation), textureRegion(textureRegion), flip(SDL_FLIP_NONE), animated(animated), inUse(true) {}
         ~TileDefinition() = default;
 
         TextureHandle texture;
@@ -51,22 +52,22 @@ namespace PRL {
         ~TileLayer() = default;
 
         std::string name;
-        // LayerID ID;
         bool visible;
     };
 
     class TileChunk {
     public:
-        TileChunk() : chunkCoord(0, 0), layerTiles() {}
-        TileChunk(int chunkX, int chunkY) : chunkCoord(chunkX, chunkY), layerTiles() {
+        TileChunk() : visible(false), chunkCoord(0, 0), tiles() {}
+        TileChunk(int chunkX, int chunkY) : visible(false), chunkCoord(chunkX, chunkY), tiles() {
             assert(chunkX >= 0 && chunkY >= 0);
         }
         
+        //! \brief Whether the chunk should be rendered or not. Can be used for frustum culling or hiding chunks.
+        bool visible;
         //! \brief Chunk coordinates in the chunk grid, not tile grid
         Vec2D<int> chunkCoord;
-
-        // one tile array per layer
-        std::vector<std::vector<Tile>> layerTiles;
+        //! \brief Tiles contained within the chunk, organized by layer
+        std::vector<std::vector<Tile>> tiles;
     };
 
 
@@ -83,20 +84,27 @@ namespace PRL {
 
         //! \brief Get chunk by chunk coordinates
         inline TileChunk& getChunk(int chunkX, int chunkY);
+        inline const TileChunk& getChunk(int chunkX, int chunkY) const;
+        //! \brief Get chunk by tile coordinates
+        inline TileChunk& getChunkFromTile(int tileX, int tileY);
+        //! \brief Get chunk by world coordinates
+        inline TileChunk& getChunkFromWorld(PosType worldX, PosType worldY);
 
         //! \brief Get tile by tile grid coordinates
-        inline Tile& atGrid(LayerID layer, int x, int y);
-        
+        inline Tile& getTile(LayerID layer, int tileX, int tileY);
         //! \brief Get tile by world coordinates
-        inline Tile& atWorld(LayerID layer, PosType worldX, PosType worldY);
+        inline Tile& getTileFromWorld(LayerID layer, PosType worldX, PosType worldY);
 
         inline Vec2D<int> tileSize() const noexcept { return tileSize_; }
         inline Vec2D<int> mapSize() const noexcept { return mapSize_; }
+        inline Vec2D<int> chunkCount() const noexcept { return chunkCount_; }
 
         static inline size_t instanceCount() noexcept { return instanceCount_; }
         
         //! \brief How many tiles of one chunk contains in each dimension. Should be a power of 2 for easier calculations.
-        constexpr static int TILE_CHUNK_SIZE = 32;
+        constexpr static int CHUNK_TILE_SIZE = 32;
+        constexpr static int CHUNK_BIT_SHIFT = 5;
+        constexpr static int CHUNK_TILE_MASK = CHUNK_TILE_SIZE - 1;
     
     private:
         void loadPropertiesSection_(const std::vector<std::string>& lines, std::vector<std::string>& renderOrder);
@@ -117,36 +125,59 @@ namespace PRL {
         bool hasCollisionLayer_;
 
         static size_t instanceCount_;
+
+        friend class TileMapSystem;
     };
 
 
 
     // Inline definitions
-    inline Tile& TileMap::atGrid(LayerID layer, int x, int y) {
+    inline Tile& TileMap::getTile(LayerID layer, int tileX, int tileY) {
         assert(layer < layers_.size());
-        assert(x >= 0 && x < mapSize_.x);
-        assert(y >= 0 && y < mapSize_.y);
+        assert(tileX >= 0 && tileX < mapSize_.x);
+        assert(tileY >= 0 && tileY < mapSize_.y);
+
+        int chunkX = tileX >> CHUNK_BIT_SHIFT;
+        int chunkY = tileY >> CHUNK_BIT_SHIFT;
 
         // chunks are stored in a 1D vector, 2D maps to it reading left to right, top to bottom
-        size_t chunkIndex = (y / TILE_CHUNK_SIZE) * chunkCount_.x + (x / TILE_CHUNK_SIZE);
-        return chunks_[chunkIndex].layerTiles[layer][x + y * chunkCount_.x]; 
+        size_t chunkIndex = chunkY * chunkCount_.x + chunkX;
+        assert(chunkIndex < chunks_.size());
+        return chunks_[chunkIndex].tiles[layer][tileX + tileY * chunkCount_.x]; 
     }
 
-    inline Tile& TileMap::atWorld(LayerID layer, PosType worldX, PosType worldY)
+    inline Tile& TileMap::getTileFromWorld(LayerID layer, PosType worldX, PosType worldY)
     {
-        return atGrid(layer, 
+        return getTile(layer, 
             static_cast<int>(worldX / tileSize_.x),
             static_cast<int>(worldY / tileSize_.y)
         );
     }
 
     inline TileChunk& TileMap::getChunk(int chunkX, int chunkY) {
-            assert(chunkX >= 0 && chunkX < chunkCount_.x);
-            assert(chunkY >= 0 && chunkY < chunkCount_.y);
+        assert(chunkX >= 0 && chunkX < chunkCount_.x);
+        assert(chunkY >= 0 && chunkY < chunkCount_.y);
 
-            size_t chunkIndex = chunkY * chunkCount_.x + chunkX;
-            return chunks_[chunkIndex];
-        }
+        size_t chunkIndex = chunkY * chunkCount_.x + chunkX;
+        return chunks_[chunkIndex];
+    }
+
+    inline const TileChunk& TileMap::getChunk(int chunkX, int chunkY) const {
+        assert(chunkX >= 0 && chunkX < chunkCount_.x);
+        assert(chunkY >= 0 && chunkY < chunkCount_.y);
+
+        size_t chunkIndex = chunkY * chunkCount_.x + chunkX;
+        return chunks_[chunkIndex];
+    }
+
+    TileChunk& TileMap::getChunkFromTile(int tileX, int tileY) {
+        return getChunk(tileX >> CHUNK_BIT_SHIFT, tileY >> CHUNK_BIT_SHIFT);
+    }
+
+    inline TileChunk& TileMap::getChunkFromWorld(PosType worldX, PosType worldY) {
+        return getChunk(static_cast<int>(worldX / (tileSize_.x << CHUNK_BIT_SHIFT)), 
+                        static_cast<int>(worldY / (tileSize_.y << CHUNK_BIT_SHIFT)));
+    }
 
 } // namespace PRL
 

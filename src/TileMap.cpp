@@ -154,32 +154,34 @@ void TileMap::loadPropertiesSection_(const std::vector<std::string>& lines, std:
 
 
 void TileMap::loadTableSection_(const std::vector<std::string>& lines) {
-    // temp
-    return;
     if (lines.empty()) {
         PRL::Logging::err("No lines in [table] section of tilemap data file", "PRL::TileMap::loadTableSection_()");
         return;
     }
 
     long long tileID;
-    std::string discard, textureName, animName;
+    std::string discard, regionName, animName;
     bool animated;
     for (const auto& l : lines) {
         std::istringstream iss(l);
         // # <tileref> texture   anim <0|1> <animation>
-        if (!(iss >> tileID >> textureName >> discard >> animated)) {
+        if (!(iss >> tileID >> regionName >> discard >> animated)) {
             PRL::Logging::err("Unable to read all 4 mandatory fields from [table] section of tilemap data file", "PRL::TileMap::loadTableSection_()");
         }
 
-        if (tileID < std::numeric_limits<TileID>::min() || tileID > Tile::maxTileID) {
+        // tile ID
+        if (tileID < Tile::minTileID || tileID > Tile::maxTileID) {
             Logging::err("Tile ID " + std::to_string(tileID) + " out of range (" 
-                + std::to_string(std::numeric_limits<TileID>::min()) 
-                + " to " + std::to_string(Tile::maxTileID) 
+                + std::to_string(Tile::minTileID) + " to " + std::to_string(Tile::maxTileID) 
                 + ") for TileID in tilemap data file", "TileMap::loadTableSection_()");
-            continue;
+            return;
         }
 
-        TextureHandle textureHandle = PRL::Core::getAssetManager().getTextureHandle(textureName);
+        // Region name to ID
+        TextureHandle textureHandle = PRL::Core::getAssetManager().getTextureHandle(textureName_);
+        TextureRegionID regionID = PRL::Core::getAssetManager().getTextureAsset(textureHandle)->regionNames.at(regionName);
+
+        // Animation
         AnimationHandle animHandle({0});
         if (animated) {
             if (!(iss >> animName)) {
@@ -194,6 +196,7 @@ void TileMap::loadTableSection_(const std::vector<std::string>& lines) {
         }
         tileDefinitions_[tileID].texture = textureHandle;
         tileDefinitions_[tileID].animation = animHandle;
+        tileDefinitions_[tileID].textureRegion = regionID;
         tileDefinitions_[tileID].animated = animated;
         tileDefinitions_[tileID].inUse = true;
     }
@@ -290,6 +293,7 @@ void TileMap::loadLayerSections_(std::vector<std::vector<std::string>>& layerSec
     // Now everything is good so that the full tilemap can be constructed
     for (size_t i(0); i < renderOrder.size(); ++i) {
         std::string layerName = renderOrder[i];
+        layers_.emplace_back(TileLayer(layerName, true));
         const auto& layerLines = layerSectionsMap[layerName];
         fullTilemap.emplace_back(std::vector<Tile>(mapSize_.x * mapSize_.y)); // start a new layer in full tilemap
         
@@ -302,6 +306,11 @@ void TileMap::loadLayerSections_(std::vector<std::vector<std::string>>& layerSec
                 // Check limits of tileID with respect to its type representation
                 if (tileID < 0 || tileID > Tile::maxTileID) {
                     tileID = Tile::emptyTileID; // assign empty tile ID for negative or out-of-range tile IDs
+                }
+                else if ((size_t)tileID >= tileDefinitions_.size() || !tileDefinitions_[tileID].inUse) {
+                    Logging::err("Tile with ID " + std::to_string(tileID) + " at tile coordinates (" + 
+                        std::to_string(nTilesX) + ", " + std::to_string(nTilesY) + ") in layer '" + layerName + 
+                        "' is not defined in [table] section of tilemap data file", "PRL::TileMap::loadLayerSections_()");
                 }
 
                 fullTilemap.back()[(nTilesY * mapSize_.x) + nTilesX] = Tile(static_cast<TileID>(tileID));
@@ -330,28 +339,43 @@ void TileMap::loadCollisionSection_(const std::vector<std::string>& lines) {
 
 void TileMap::constructChunks_(const std::vector<std::vector<Tile>>& fullTilemap) {
     // Read through the whole tilemap and construct chunks on the fly
-    // Currently here in dev
-    for (size_t layerIndex(0); layerIndex < fullTilemap.size(); ++layerIndex) {
-        const auto& layer = fullTilemap[layerIndex];
-        for (int y(0); y < mapSize_.y; y += TILE_CHUNK_SIZE) {
-            for (int x(0); x < mapSize_.x; x += TILE_CHUNK_SIZE) {
-                TileChunk chunk;
-                chunk.layerTiles[layerIndex].resize(mapSize_.x * mapSize_.y); // initialize the vector to the full size of the map, since tiles will be accessed by their absolute coordinates in the map
 
-                for (int j(0); j < TILE_CHUNK_SIZE; ++j) {
-                    for (int i(0); i < TILE_CHUNK_SIZE; ++i) {
-                        int tileX = x + i;
-                        int tileY = y + j;
-                        if (tileX < mapSize_.x && tileY < mapSize_.y) {
-                            chunk.layerTiles[layerIndex][tileX + tileY * mapSize_.x] = layer[tileX + tileY * mapSize_.x];
+    // Prepare empty chunks
+    const int NLayers = static_cast<int>(fullTilemap.size());
+    const int NChunksX = ceil(static_cast<float>(mapSize_.x) / CHUNK_TILE_SIZE);
+    const int NChunksY = ceil(static_cast<float>(mapSize_.y) / CHUNK_TILE_SIZE);
+    chunkCount_ = Vec2D<int>(NChunksX, NChunksY);
+
+    chunks_.reserve(NChunksX * NChunksY);
+
+    // Loop through the whole tilemap and fill in chunk data
+    for (int chunkY(0); chunkY < NChunksY; ++chunkY) {
+        for (int chunkX(0); chunkX < NChunksX; ++chunkX) {
+            TileChunk chunk(chunkX, chunkY);
+            chunk.tiles.resize(NLayers);
+            chunk.visible = true; // by default all chunks are visible, can be changed later for frustum culling or hiding
+            
+            for (int layer(0); layer < NLayers; ++layer) {
+                std::vector<Tile>& tiles = chunk.tiles[layer];
+                tiles.reserve(CHUNK_TILE_SIZE * CHUNK_TILE_SIZE);
+                
+                for (int localY(0); localY < CHUNK_TILE_SIZE; ++localY) {
+                    for (int localX(0); localX < CHUNK_TILE_SIZE; ++localX) {
+                        int globalX = (chunkX * CHUNK_TILE_SIZE) + localX;
+                        int globalY = (chunkY * CHUNK_TILE_SIZE) + localY;
+                        
+                        if (globalX < mapSize_.x && globalY < mapSize_.y) {
+                            tiles.push_back(fullTilemap[layer][globalY * mapSize_.x + globalX]);
+                        }
+                        else {
+                            tiles.push_back(Tile(Tile::emptyTileID)); // fill out-of-bounds tiles with empty tiles
                         }
                     }
                 }
-                chunks_.push_back(std::move(chunk));
             }
+            chunks_.push_back(std::move(chunk));
         }
     }
-    return;
 }
 
 } // namespace PRL
