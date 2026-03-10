@@ -179,7 +179,14 @@ void TileMap::loadTableSection_(const std::vector<std::string>& lines) {
 
         // Region name to ID
         TextureHandle textureHandle = PRL::Core::getAssetManager().getTextureHandle(textureName_);
-        TextureRegionID regionID = PRL::Core::getAssetManager().getTextureAsset(textureHandle)->regionNames.at(regionName);
+        const TextureAsset* textureAsset = PRL::Core::getAssetManager().getTextureAsset(textureHandle);
+        if (textureAsset->regionNames.find(regionName) == textureAsset->regionNames.end()) {
+            PRL::Logging::err("In [table] section of tilemap data file, region name '" + regionName 
+                + "' for tile ID " + std::to_string(tileID) + " not found in texture asset '" 
+                + textureName_ + "'", "PRL::TileMap::loadTableSection_()");
+            return;
+        }
+        TextureRegionID regionID = textureAsset->regionNames.at(regionName);
 
         // Animation
         AnimationHandle animHandle({0});
