@@ -126,9 +126,13 @@ void AssetManager::loadTextureSection_(const string& datFile, const vector<strin
     for (const auto& l : lines) {
         std::istringstream iss(l);
         // Properties are native_resolution, and filtering mode
-        if (l.find("native_resolution") == 0) {
-            if (!(iss >> discard >> tempAsset.nativeResolution.x >> tempAsset.nativeResolution.y)) {
-                Logging::err("Invalid native resolution format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_()");
+        if (l.find("pixels_per_unit") == 0) {
+            if (!(iss >> discard >> tempAsset.pixels_per_unit)) {
+                Logging::err("Invalid pixels_per_unit format in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_()");
+                continue;
+            }
+            if (tempAsset.pixels_per_unit <= 0) {
+                Logging::err("Pixels per unit must be positive in asset data file " + datFile, "PRL::AssetManager::loadTextureSection_()");
                 continue;
             }
         } else if (l.find("filtering_mode") == 0) {
@@ -303,7 +307,7 @@ void AssetManager::loadAnimationSection_(const std::string& datFile, const std::
 
 void AssetManager::createProjectile(Vector2D pos, Vector2D vel, float range, float speed, const TextureID& textureID){
     auto& projectile(entityManager_.addEntity());
-    projectile.addComponent<TransformComponent>(pos.x, pos.y, 32, 32, 1);
+    projectile.addComponent<TransformComponent>(pos.x, pos.y);
     projectile.addComponent<SpriteComponent>(textureID);
     projectile.addComponent<ProjectileComponent>(range, speed, vel);
     // projectile.addComponent<ColliderComponent>("projectile");

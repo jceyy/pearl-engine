@@ -8,12 +8,8 @@ TransformComponent::TransformComponent() : position(0, 0), scale(1, 1), rotation
     instanceCount_++;
 }
 
-TransformComponent::TransformComponent(PosType x, PosType y) : position(x, y), scale(1, 1), rotation(0.0) {
-    instanceCount_++;
-}
-
-TransformComponent::TransformComponent(PosType x, PosType y, PosType scaleX, PosType scaleY, double rotation) :
-position(x, y), scale(scaleX, scaleY), rotation(rotation)
+TransformComponent::TransformComponent(PosType x, PosType y, double rotation) :
+position(x, y), scale(1, 1), rotation(rotation)
 {
     instanceCount_++;
 }

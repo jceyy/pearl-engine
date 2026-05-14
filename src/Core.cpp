@@ -6,7 +6,6 @@ namespace PRL {
 
 // Static member definitions
 SDL_Renderer* Core::renderer = nullptr;
-Vec2D<int> Core::screenSize(0, 0);
 SDL_Window* Core::window_ = nullptr;
 bool Core::initialized_ = false;
 
@@ -14,6 +13,8 @@ bool Core::initialized_ = false;
 uint64_t Core::currentTimeUS_ = 0;
 std::chrono::high_resolution_clock::time_point Core::initTime;
 
+// Settings
+PRLSettings Core::settings;
 
 // Methods
 void Core::init(SDL_Rect windowRect, Uint32 rendererFlags, Uint32 windowFlags, const std::string& windowName) {
@@ -21,7 +22,8 @@ void Core::init(SDL_Rect windowRect, Uint32 rendererFlags, Uint32 windowFlags, c
         return;
     }
 
-    screenSize.set(windowRect.w, windowRect.h);
+    settings.render.screenSize_.set(windowRect.w, windowRect.h);
+    settings.render.logicalSize_.set(windowRect.w, windowRect.h);
 
     if(SDL_Init(SDL_INIT_EVERYTHING) == 0) {
         PRL::Logging::log("SDL subsystems initialized", "PRL::Core::init()");

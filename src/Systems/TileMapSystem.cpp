@@ -1,5 +1,6 @@
 #include "Systems/TileMapSystem.hpp"
 #include "TextureManager.hpp"
+#include "Core.hpp"
 
 using namespace std;
 
@@ -48,12 +49,15 @@ void TileMapSystem::draw() {
                         const TileDefinition& tileDef = tilemap.tileDefinitions_[tile.ID];
                         TextureHandle textureHandle = tileDef.texture;
                         const TextureAsset* textureAsset = assetManager_->getTextureAsset(textureHandle);
-
+                        int refPixelsPerUnit = Core::settings.render.pixelsPerUnit;
+                        int pixelsPerUnit = textureAsset->pixels_per_unit;
+                        float pxlUnitScale = static_cast<float>(refPixelsPerUnit) / static_cast<float>(pixelsPerUnit);
+                        
                         dst = {
-                            static_cast<float>((chunk.chunkCoord.x + tilemap.tileSize_.x*tileX)),
-                            static_cast<float>((chunk.chunkCoord.y + tilemap.tileSize_.y*tileY)),
-                            static_cast<float>(tilemap.tileSize_.x),
-                            static_cast<float>(tilemap.tileSize_.y)
+                            static_cast<float>((chunk.chunkCoord.x + tilemap.tileSize_.x*tileX)) * pxlUnitScale,
+                            static_cast<float>((chunk.chunkCoord.y + tilemap.tileSize_.y*tileY)) * pxlUnitScale,
+                            static_cast<float>(tilemap.tileSize_.x) * pxlUnitScale,
+                            static_cast<float>(tilemap.tileSize_.y) * pxlUnitScale
                         };
                         
                         src = { 

@@ -88,7 +88,8 @@ void Game::init() {
 
 
     // Compose entities with components
-    player->addComponent<TransformComponent>(250, 300, 4.0, 4.0, 0);
+    // 250, 300
+    player->addComponent<TransformComponent>(3, 6);
     player->addComponent<SpriteComponent>("player", "walk4");
     player->addComponent<AnimationComponent>("player.idle");
     // player.addComponent<KeyboardController>();
@@ -142,7 +143,7 @@ void Game::handleEvents() {
     }
 
     const Uint8* keystates = SDL_GetKeyboardState(nullptr);
-    int moveSpeed = 5;
+    float moveSpeed = .1;
     const float deg2rad = M_PI / 180.0f;
 
     auto walkAnim = assetManager.getAnimationHandle("player.walk");
@@ -174,10 +175,10 @@ void Game::handleEvents() {
         unitDirection.y+=sin(playerTransform.rotation * deg2rad);
     }
     if (keystates[SDL_SCANCODE_Q]){
-        playerTransform.rotation -= 45.0/4;
+        playerTransform.rotation -= 45.0/16;
     }
     if (keystates[SDL_SCANCODE_E]){
-        playerTransform.rotation += 45.0/4;
+        playerTransform.rotation += 45.0/16;
     }
     if (keystates[SDL_SCANCODE_R]){
         playerTransform.rotation = 0;
@@ -185,8 +186,9 @@ void Game::handleEvents() {
         int textureHeight = assetManager.getTextureAsset(player->getComponent<SpriteComponent>().textureHandle)->regions[0].h;
         textureWidth *= playerTransform.scale.x;
         textureHeight *= playerTransform.scale.y;
-        playerTransform.position.x = Core::screenSize.x / 2 - textureWidth / 2;
-        playerTransform.position.y = Core::screenSize.y / 2 - textureHeight / 2;
+        int refPixelsPerUnit = Core::settings.render.pixelsPerUnit;
+        playerTransform.position.x = (Core::getLogicalSize().x / 2 - textureWidth / 2) / refPixelsPerUnit;
+        playerTransform.position.y = (Core::getLogicalSize().y / 2 - textureHeight / 2) / refPixelsPerUnit;
     }
 
     if (player->hasComponent<AnimationComponent>()) {

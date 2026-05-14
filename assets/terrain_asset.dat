@@ -1,7 +1,7 @@
 # File player_anim.dat
 
 [texture]
-native_resolution 320 180
+pixels_per_unit 32
 filtering_mode nearest
 file assets/terrain3.png
 

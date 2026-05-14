@@ -10,9 +10,7 @@ namespace PRL {
 class TransformComponent : public Component {
 public:
     TransformComponent();
-    TransformComponent(PosType x, PosType y);
-    TransformComponent(PosType x, PosType y, PosType scaleX = 1.0, 
-        PosType scaleY = 1.0, double rotation = 0.0);
+    TransformComponent(PosType x, PosType y, double rotation = 0.0);
     TransformComponent(const TransformComponent& other);
     TransformComponent(TransformComponent&& other) noexcept = default;
     ~TransformComponent();

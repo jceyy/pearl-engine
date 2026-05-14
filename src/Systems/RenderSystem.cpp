@@ -1,5 +1,6 @@
 #include "Systems/RenderSystem.hpp"
 #include "TextureManager.hpp"
+#include "Core.hpp"
 
 using namespace std;
 
@@ -26,19 +27,20 @@ void RenderSystem::draw() {
     SDL_Rect src;
     for (size_t i = 0; i < entities.size(); ++i) {
         Entity* entity = entities[i];
-        if (!entity->getComponent<SpriteComponent>().visible) continue;
-        dst.x = entity->getComponent<TransformComponent>().position.x;
-        dst.y = entity->getComponent<TransformComponent>().position.y;
         const TextureHandle& textureHandle = entity->getComponent<SpriteComponent>().textureHandle;
         const TextureAsset* textureAsset = assetManager_->getTextureAsset(textureHandle);
-    
+        int refPixelsPerUnit = Core::settings.render.pixelsPerUnit;
+        int pixelsPerUnit = textureAsset->pixels_per_unit;
+        float pxlUnitScale = static_cast<float>(refPixelsPerUnit) / static_cast<float>(pixelsPerUnit);
+        if (!entity->getComponent<SpriteComponent>().visible) continue;
+        dst.x = entity->getComponent<TransformComponent>().position.x * refPixelsPerUnit;
+        dst.y = entity->getComponent<TransformComponent>().position.y * refPixelsPerUnit;
+
+        // to do : camera has to come in here
         Vector2D scale = entity->getComponent<TransformComponent>().scale;
-        // Vector2D nativeSpriteSize = textureAsset.nativeSpriteSize;
-        // dst.w = nativeSpriteSize.x * std::abs(scale.x);
-        // dst.h = nativeSpriteSize.y * std::abs(scale.y);
         size_t regionIndex = entity->getComponent<SpriteComponent>().region;
-        dst.w = textureAsset->regions[regionIndex].w * std::abs(scale.x);
-        dst.h = textureAsset->regions[regionIndex].h * std::abs(scale.y);
+        dst.w = textureAsset->regions[regionIndex].w * std::abs(scale.x) * pxlUnitScale;
+        dst.h = textureAsset->regions[regionIndex].h * std::abs(scale.y) * pxlUnitScale;
         src = { textureAsset->regions[regionIndex].x, textureAsset->regions[regionIndex].y, 
         textureAsset->regions[regionIndex].w, textureAsset->regions[regionIndex].h };
             

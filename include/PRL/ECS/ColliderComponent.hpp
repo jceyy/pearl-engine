@@ -16,37 +16,37 @@
 
 namespace PRL {
 
-class ColliderComponent : public Component {
-public:
-    // ColliderComponent();
-    ColliderComponent(const std::string& tag, const ColliderShape& shape, bool isTrigger = false);
-    ~ColliderComponent();
+// class ColliderComponent : public Component {
+// public:
+//     // ColliderComponent();
+//     ColliderComponent(const std::string& tag, const ColliderShape& shape, bool isTrigger = false);
+//     ~ColliderComponent();
 
-    void init() override;
-    void update() override;
-    void draw() override;
+//     void init() override;
+//     void update() override;
+//     void draw() override;
 
-    inline const std::string&  getTag() const noexcept { return tag_; }
-    inline bool isTrigger() const noexcept { return isTrigger_; }
+//     inline const std::string&  getTag() const noexcept { return tag_; }
+//     inline bool isTrigger() const noexcept { return isTrigger_; }
 
-private:
-    bool isTrigger_;
-    std::string tag_;
-    ColliderShape* shape_;
-    TransformComponent* transform_;
-};
+// private:
+//     bool isTrigger_;
+//     std::string tag_;
+//     ColliderShape* shape_;
+//     TransformComponent* transform_;
+// };
 
-// To do : implement this class
-class ColliderDebugComponent : public Component {
-public:
-    ColliderDebugComponent() {};
-    ~ColliderDebugComponent() {};
+// // To do : implement this class
+// class ColliderDebugComponent : public Component {
+// public:
+//     ColliderDebugComponent() {};
+//     ~ColliderDebugComponent() {};
 
-private:
-    ColliderComponent* collider_;
-    SDL_FRect dstRect_;
-    SDL_Texture* texture_;
-};
+// private:
+//     ColliderComponent* collider_;
+//     SDL_FRect dstRect_;
+//     SDL_Texture* texture_;
+// };
 
 } // namespace PRL
 

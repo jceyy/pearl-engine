@@ -8,6 +8,26 @@
 
 namespace PRL {
 
+    class Core;
+
+    class PRLSettings {
+    public:
+        class Rendering {
+        public:
+            int pixelsPerUnit = 32;
+        
+        private:
+            Vec2D<int> logicalSize_ = {0,0};
+            Vec2D<int> refLogicalSize_ = {0,0};
+            float logicalScaleToRef_ = 1.0f;
+            Vec2D<int> screenSize_ = {0,0};
+
+            friend class Core;
+        };
+        Rendering render;
+    };
+
+
     class Core {
     public:
         Core() {}
@@ -44,7 +64,10 @@ namespace PRL {
         static void updateCurrentTime() noexcept;
         inline static uint64_t getCurrentTimeUS() noexcept { return currentTimeUS_; }
         static SDL_Renderer* renderer;
-        static Vec2D<int> screenSize;
+
+        static PRLSettings settings;
+        static inline Vec2D<int> getLogicalSize() noexcept { return settings.render.logicalSize_; }
+        static inline Vec2D<int> getScreenSize() noexcept { return settings.render.screenSize_; }
 
     private:
         static SDL_Window* window_;

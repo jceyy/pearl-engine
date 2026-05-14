@@ -58,14 +58,14 @@ public:
 
 class TextureAsset {
 public:
-    TextureAsset() : texture(nullptr), nativeResolution(0, 0), textureSize(0, 0), scaleMode(SDL_ScaleModeNearest) {}
-    TextureAsset(SDL_Texture* texture, const std::vector<SpriteRegion>& regions, const Vec2D<int>& nativeResolution, 
+    TextureAsset() : texture(nullptr), pixels_per_unit(0), textureSize(0, 0), scaleMode(SDL_ScaleModeNearest) {}
+    TextureAsset(SDL_Texture* texture, const std::vector<SpriteRegion>& regions, int pixels_per_unit, 
         const Vec2D<int> textureSize, SDL_ScaleMode scaleMode = SDL_ScaleModeNearest) :
-        texture(texture), regions(regions), nativeResolution(nativeResolution), textureSize(textureSize), scaleMode(scaleMode) {}
+        texture(texture), regions(regions), pixels_per_unit(pixels_per_unit), textureSize(textureSize), scaleMode(scaleMode) {}
     TextureAsset(const TextureAsset&) = delete;
     TextureAsset(TextureAsset&& other) noexcept : 
     texture(other.texture), regions(std::move(other.regions)), regionNames(std::move(other.regionNames)), 
-    nativeResolution(other.nativeResolution), textureSize(other.textureSize), scaleMode(other.scaleMode) {
+    pixels_per_unit(other.pixels_per_unit), textureSize(other.textureSize), scaleMode(other.scaleMode) {
         other.texture = nullptr; // prevent destructor from freeing the texture
     }
     TextureAsset& operator=(const TextureAsset&) = delete;
@@ -75,7 +75,7 @@ public:
             texture = other.texture;
             regions = std::move(other.regions);
             regionNames = std::move(other.regionNames);
-            nativeResolution = other.nativeResolution;
+            pixels_per_unit = other.pixels_per_unit;
             textureSize = other.textureSize;
             scaleMode = other.scaleMode;
             other.texture = nullptr; // prevent destructor from freeing the texture
@@ -90,7 +90,7 @@ public:
     SDL_Texture* texture;
     std::vector<SpriteRegion> regions;
     std::unordered_map<std::string, std::size_t> regionNames;
-    Vec2D<int> nativeResolution;    // internal design resolution
+    int pixels_per_unit;
     Vec2D<int> textureSize;
     SDL_ScaleMode scaleMode;
 };

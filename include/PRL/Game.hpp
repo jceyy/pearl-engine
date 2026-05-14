@@ -34,7 +34,8 @@ namespace PRL {
 
         static bool isRunning;
         static SDL_FRect camera;
-        constexpr static int pixelsPerUnit = 1;
+
+        constexpr static int pixelsPerUnit = 32;
 
         enum groupLabels : std::size_t {
             groupMap,
