@@ -53,6 +53,8 @@ target_sources(prl_library
     ECS/AnimationComponent.cpp
     ECS/ButtonComponent.cpp
     ECS/ColliderComponent.cpp
+    ECS/RigidBodyComponent.cpp
+    ECS/SensorComponent.cpp
     ECS/FadeComponent.cpp
     ECS/ECS.cpp
     ECS/HumanPlayerComponent.cpp
@@ -65,6 +67,7 @@ target_sources(prl_library
     ECS/UILabel.cpp
     ECS/VelocityComponent.cpp
     Systems/AnimationSystem.cpp
+    Systems/CollisionSystem.cpp
     Systems/RenderSystem.cpp
     Systems/TileMapSystem.cpp
     Systems/Systems.cpp

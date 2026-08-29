@@ -20,8 +20,8 @@ class Entity;
 class Component : public PRLObject {
 public:
     Component();
-    Component(const Component&) = delete;
-    Component& operator=(const Component&) = delete;
+    Component(const Component&) = delete; // to be allowed
+    Component& operator=(const Component&) = delete;  // to be allowed
     Component(Component&&) = delete;
     Component& operator=(Component&&) = delete;
     virtual ~Component() = 0;

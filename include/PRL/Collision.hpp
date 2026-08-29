@@ -80,8 +80,8 @@ namespace PRL {
             inline float y() const noexcept { return y_; }
             inline float w() const noexcept { return w_; }
             inline float h() const noexcept { return h_; }
-            inline void setX(float x) noexcept { x_ = cached_aabb_.x = x; }
-            inline void setY(float y) noexcept { y_ = cached_aabb_.y = y; }
+            inline void setX(float x) noexcept { x_ = x; aabb_dirty_ = true; }
+            inline void setY(float y) noexcept { y_ = y; aabb_dirty_ = true; }
             inline void setWidth(float w) noexcept { w_ = w; aabb_dirty_ = true; }
             inline void setHeight(float h) noexcept { h_ = h; aabb_dirty_ = true; }
 
@@ -99,6 +99,8 @@ namespace PRL {
             mutable bool aabb_dirty_ = true;
 
             inline void computeAABB_() const noexcept {
+                cached_aabb_.x = x_;
+                cached_aabb_.y = y_;
                 cached_aabb_.w = w_;
                 cached_aabb_.h = w_ + h_;
             }
@@ -212,65 +214,93 @@ namespace PRL {
         // Shapes
         enum class ShapeType { AABB, Circle, Capsule, ConvexPolygon };
 
+        // Tagged union for the three inline shape types.
+        // ConvexPoly is excluded: its std::vector member cannot live in a plain union.
         struct Shape {
             ShapeType type;
             union {
-                Collision::AABB        aabb;
-                Collision::Circle      circle;
-                Collision::Capsule     capsule;
-                Collision::ConvexPoly  poly;
+                AABB    aabb;
+                Circle  circle;
+                Capsule capsule;
             };
+
+            Shape() : type(ShapeType::AABB), aabb() {}
+            explicit Shape(const AABB& a)    : type(ShapeType::AABB),    aabb(a)    {}
+            explicit Shape(const Circle& c)  : type(ShapeType::Circle),  circle(c)  {}
+            explicit Shape(const Capsule& c) : type(ShapeType::Capsule), capsule(c) {}
+
+            // AABB/Circle/Capsule are trivially copyable; = default is correct.
+            Shape(const Shape&)            = default;
+            Shape& operator=(const Shape&) = default;
+            ~Shape()                       = default;
+
+            const AABB& boundingAABB() const noexcept {
+                switch (type) {
+                    case ShapeType::AABB:    return aabb.boundingAABB();
+                    case ShapeType::Circle:  return circle.boundingAABB();
+                    case ShapeType::Capsule: return capsule.boundingAABB();
+                    default:                 return aabb.boundingAABB();
+                }
+            }
         };
 
 
+        // Body types — determine how the collision system moves (or doesn't move) an entity.
+        enum class BodyType : uint8_t {
+            Dynamic,    // moved by velocity/forces; displaced by collision resolution
+            Kinematic,  // code-driven movement; pushes Dynamic bodies but is not pushed
+            Static,     // immovable; use for non-tilemap world geometry
+        };
 
 
         // Collision algorithms and response flags
         enum class CollisionAlgorithm : uint8_t {
-            Discrete,       // compare positions frame-by-frame
-            Swept,          // continuous
-            Speculative,    // predictive contacts, cheaper than full CCD
-            SweptTOI,            // continuous with time of impact resolution, most expensive but most accurate
+            Discrete,    // compare positions frame-by-frame (fast, may tunnel at high speed)
+            Swept,       // continuous sweep (prevents tunneling)
+            Speculative, // predictive contacts, cheaper than full CCD
+            SweptTOI,    // time-of-impact resolution, most accurate and most expensive
         };
 
         enum class CollisionResponseFlags : uint16_t {
-            None        = 0,
-            Resolve     = 1 << 0,   // apply position correction
-            Impulse     = 1 << 1,   // apply velocity response
-            Trigger     = 1 << 2,   // fire event, no resolution
-            OneShot     = 1 << 3,   // disable after first contact
+            None           = 0,
+            Resolve        = 1 << 0,  // apply position correction
+            Impulse        = 1 << 1,  // apply velocity response
+            Trigger        = 1 << 2,  // fire event, no resolution (reserved for SensorComponent)
+            OneShot        = 1 << 3,  // disable after first contact
+            OneWayPlatform = 1 << 4,  // block only from above; pass through from below/sides
         };
 
-        // struct CollisionBody {
-        //     Shape                   shape;
-        //     CollisionAlgorithm      algorithm;
-        //     CollisionResponseFlags  response_flags;
-        //     LayerID                  layer;          // which layer this belongs to
-        //     LayerID                  mask;           // which layers it tests against
-        // };
+        inline CollisionResponseFlags operator|(CollisionResponseFlags a, CollisionResponseFlags b) {
+            return static_cast<CollisionResponseFlags>(
+                static_cast<uint16_t>(a) | static_cast<uint16_t>(b));
+        }
+        inline CollisionResponseFlags operator&(CollisionResponseFlags a, CollisionResponseFlags b) {
+            return static_cast<CollisionResponseFlags>(
+                static_cast<uint16_t>(a) & static_cast<uint16_t>(b));
+        }
+        inline bool hasFlag(CollisionResponseFlags flags, CollisionResponseFlags flag) {
+            return (static_cast<uint16_t>(flags) & static_cast<uint16_t>(flag)) != 0;
+        }
 
 
-        // Hitboxes
-        enum class HitboxRole : uint8_t {
-            Hurt,       // "I can receive hits"
-            Attack,     // "I deal hits"
-            Grab,       // "I can initiate a grab"
-            Sense,      // "I detect nearby entities" (aggro, pickup)
+
+        // Sensor regions — used by SensorComponent for triggers, hitboxes, and sense areas.
+        enum class SensorRole : uint8_t {
+            Hurt,    // receives hits
+            Attack,  // deals hits
+            Grab,    // initiates a grab
+            Sense,   // detects nearby entities (aggro, pickup, etc.)
         };
 
-        struct Hitbox {
+        struct SensorRegion {
             Shape       shape;
-            HitboxRole  role;
-            uint32_t    type_flags;     // game-defined: FIRE, POISON, PROJECTILE...
-            float       lifetime;       // 0 = permanent
-            Vector2D    local_offset;   // relative to entity transform
-            // EntityId    owner;          // for damage attribution
-        };
-
-        struct HitboxSet {
-            static constexpr int MAX = 8;
-            Hitbox  boxes[MAX];
-            int     count;
+            SensorRole  role         = SensorRole::Sense;
+            uint32_t    typeFlags    = 0;    // game-defined tags: FIRE, POISON, ATTACK_TYPE...
+            Vector2D    offset;              // local to entity's TransformComponent position
+            LayerID     layer        = 0;
+            LayerID     mask         = 0xFF; // test against all layers by default
+            float       lifetime     = 0.f;  // seconds until auto-disable; 0 = permanent
+            bool        active       = true;
         };
     } // namespace Collision
 

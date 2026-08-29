@@ -3,10 +3,12 @@
 
 // Independent components
 #include "TransformComponent.hpp"
+#include "VelocityComponent.hpp"
 
 // Dependent components
 #include "AnimationComponent.hpp"
-#include "ColliderComponent.hpp"
+#include "RigidBodyComponent.hpp"
+#include "SensorComponent.hpp"
 #include "KeyboardController.hpp"
 #include "PhysicsComponent.hpp"
 #include "ProjectileComponent.hpp"
