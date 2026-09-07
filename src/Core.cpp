@@ -1,3 +1,4 @@
+#include <SDL2/SDL_mixer.h>
 #include "Core.hpp"
 
 using namespace std;
@@ -8,6 +9,9 @@ namespace PRL {
 SDL_Renderer* Core::renderer = nullptr;
 SDL_Window* Core::window_ = nullptr;
 bool Core::initialized_ = false;
+bool Core::audioAvailable_ = false;
+
+SDL_Color Core::renderColor = {236, 236, 236, 255};
 
 // Time management
 uint64_t Core::currentTimeUS_ = 0;
@@ -56,6 +60,22 @@ void Core::init(SDL_Rect windowRect, Uint32 rendererFlags, Uint32 windowFlags, c
         if (TTF_Init() == -1){
             PRL::Logging::err("Unable to initialize SDL_TTF : " + std::string(SDL_GetError()), "PRL::Core::init()");
         }
+
+        // Audio: init decoders and open the output device. Failure is not fatal —
+        // the game runs muted and AssetManager::addSound/playSound no-op with logs.
+        const int wantedDecoders = MIX_INIT_MP3 | MIX_INIT_OGG;
+        const int gotDecoders = Mix_Init(wantedDecoders);
+        if ((gotDecoders & wantedDecoders) != wantedDecoders){
+            PRL::Logging::err("Some audio decoders unavailable (wanted mp3+ogg) : " + std::string(Mix_GetError()), "PRL::Core::init()");
+        }
+        if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == 0){
+            Mix_AllocateChannels(16);
+            audioAvailable_ = true;
+            PRL::Logging::log("Audio device opened", "PRL::Core::init()");
+        }
+        else {
+            PRL::Logging::err("Unable to open audio device : " + std::string(Mix_GetError()), "PRL::Core::init()");
+        }
         initTime = std::chrono::high_resolution_clock::now();
         initialized_ = true;
     }
@@ -67,6 +87,12 @@ void Core::clean() {
     renderer = nullptr;
     SDL_DestroyWindow(window_);
     window_ = nullptr;
+
+    if (audioAvailable_) {
+        Mix_CloseAudio();
+        audioAvailable_ = false;
+    }
+    Mix_Quit();
 
     SDL_Quit();
     PRL::Logging::log("Engine cleaned", "PRL::Core::clean()");

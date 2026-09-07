@@ -40,7 +40,9 @@ namespace PRL {
 
         static void init(SDL_Rect windowRect, Uint32 rendererFlags = (SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC), Uint32 windowFlags = 0, const std::string& windowName = "pearl-engine alpha");
         static void clean();
-        static inline bool isInitialized() noexcept { return initialized_; } 
+        static inline bool isInitialized() noexcept { return initialized_; }
+        //! \brief Whether the audio device was opened successfully in init().
+        static inline bool isAudioAvailable() noexcept { return audioAvailable_; } 
 
         static inline AssetManager& getAssetManager() noexcept {
             static AssetManager instance(getEntityManager());
@@ -86,9 +88,13 @@ namespace PRL {
         static inline Vec2D<int> getLogicalSize() noexcept { return settings.render.logicalSize_; }
         static inline Vec2D<int> getScreenSize() noexcept { return settings.render.screenSize_; }
 
+        // temporary public access?
+        static SDL_Color renderColor;
+
     private:
         static SDL_Window* window_;
         static bool initialized_;
+        static bool audioAvailable_;
 
         // Time management
         static uint64_t currentTimeUS_;

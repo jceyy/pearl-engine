@@ -6,6 +6,7 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include "Types.hpp"
 #include "ECS/ECS.hpp"
 #include "Logging.hpp"
@@ -112,8 +113,37 @@ public:
     bool looping;
 };
 
+//! \brief A loaded sound effect (Mix_Chunk). Owns the chunk.
+class SoundAsset {
+public:
+    SoundAsset() : chunk(nullptr) {}
+    explicit SoundAsset(Mix_Chunk* chunk) : chunk(chunk) {}
+    SoundAsset(const SoundAsset&) = delete;
+    SoundAsset& operator=(const SoundAsset&) = delete;
+    SoundAsset(SoundAsset&& other) noexcept : chunk(other.chunk) { other.chunk = nullptr; }
+    SoundAsset& operator=(SoundAsset&& other) noexcept {
+        if (this != &other) {
+            if (chunk) Mix_FreeChunk(chunk);
+            chunk = other.chunk;
+            other.chunk = nullptr;
+        }
+        return *this;
+    }
+    ~SoundAsset() { if (chunk) Mix_FreeChunk(chunk); }
+
+    Mix_Chunk* chunk;
+};
+
+
 using TextureHandle = Handle<TextureAsset>;
 using AnimationHandle = Handle<AnimationAsset>;
+using SoundHandle = Handle<SoundAsset>;
+
+//! \brief Handle value that never resolves to an asset (index out of range).
+template<typename AssetType>
+inline Handle<AssetType> invalidHandle() {
+    return Handle<AssetType>{ static_cast<std::size_t>(-1), 0 };
+}
 
 
 class AssetManager : public PRLObject {
@@ -180,6 +210,39 @@ public:
         return &animationAssetSlots_[handle.index].asset;
     }
     
+    // Sounds
+    //! \brief Load a sound effect (wav/ogg/mp3, per SDL_mixer support).
+    //! Requires Core::init() to have opened the audio device; on failure an
+    //! invalid handle is returned and playSound() safely does nothing.
+    SoundHandle addSound(const std::string& soundID, const std::string& fileName);
+
+    inline bool hasSound(const std::string& name) const {
+        return soundAssetHandles_.find(name) != soundAssetHandles_.end();
+    }
+
+    const inline SoundHandle getSoundHandle(const std::string& name) {
+        auto it = soundAssetHandles_.find(name);
+        if (it == soundAssetHandles_.end()) {
+            PRL::Logging::err("Sound asset '" + name + "' not found", "AssetManager::getSoundHandle");
+            return invalidHandle<SoundAsset>();
+        }
+        return it->second;
+    }
+
+    const inline SoundAsset* getSoundAsset(const SoundHandle& handle) noexcept {
+        if (handle.index >= soundAssetSlots_.size())
+            return nullptr;
+
+        if (soundAssetSlots_[handle.index].generation != handle.generation)
+            return nullptr;
+
+        return &soundAssetSlots_[handle.index].asset;
+    }
+
+    //! \brief Play a sound effect. loops: 0 = once, -1 = forever.
+    //! channel: -1 = first free channel. Returns the channel used, or -1.
+    int playSound(const SoundHandle& handle, int loops = 0, int channel = -1);
+
     // Game objects
     void createProjectile(Vector2D pos, Vector2D vel, float range, float speed, const TextureID& textureID); // to update with textureHandle
     
@@ -204,6 +267,10 @@ private:
     std::unordered_map<std::string, std::string> assetFilenameLookup_; // for debugging purposes, maps asset IDs to their source .dat files
 
     std::unordered_map<std::string, TTF_Font*> fonts_;
+
+    std::vector<AssetSlot<SoundAsset>> soundAssetSlots_;
+    std::vector<std::size_t> soundAssetFreeList_;
+    std::unordered_map<std::string, SoundHandle> soundAssetHandles_;
 
     static size_t instanceCount_;
 };

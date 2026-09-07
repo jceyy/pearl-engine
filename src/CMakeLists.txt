@@ -46,6 +46,7 @@ target_sources(prl_library
     Core.cpp
     Game.cpp 
     Geometry.cpp
+    Input.cpp
     Logging.cpp
     PhysicsManager.cpp
     TextureManager.cpp
@@ -69,6 +70,7 @@ target_sources(prl_library
     ECS/VelocityComponent.cpp
     Systems/AnimationSystem.cpp
     Systems/CollisionSystem.cpp
+    Systems/DebugDrawSystem.cpp
     Systems/MovementSystem.cpp
     Systems/RenderSystem.cpp
     Systems/TileMapSystem.cpp
@@ -88,6 +90,7 @@ if (WIN32)
     SDL2::SDL2main
     SDL2_image::SDL2_image
     SDL2_ttf::SDL2_ttf
+    SDL2_mixer::SDL2_mixer
   )
 else()
   target_include_directories(prl_library

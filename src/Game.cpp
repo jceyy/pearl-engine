@@ -10,11 +10,13 @@
 #include "TileMap.hpp"
 #include "Logging.hpp"
 #include "Camera.hpp"
+#include "Input.hpp"
 #include "Systems/RenderSystem.hpp"
 #include "Systems/AnimationSystem.hpp"
 #include "Systems/TileMapSystem.hpp"
 #include "Systems/CollisionSystem.hpp"
 #include "Systems/MovementSystem.hpp"
+#include "Systems/DebugDrawSystem.hpp"
 
 /** 
  * Upcoming upgrades :
@@ -50,11 +52,15 @@ CollisionSystem* collisionSystem = nullptr;
 static const Vector2D playerSpawn(2.f, 5.f);
 static const float runSpeed  = 7.f;   // units/s
 static const float runBoost  = 1.6f;  // LSHIFT multiplier
-static const float jumpSpeed = 15.f;  // initial upward velocity, units/s
+static const float jumpSpeed = 15.f * 1.5f;  // initial upward velocity, units/s
 
-// Placeholder input state until an InputSystem exists.
+// Per-frame input intent, consumed by the fixed update.
 static bool jumpRequested = false;
 static bool playerGrounded = false;
+static bool playerGroundedPrev = false; // for landing detection (edge)
+
+static SoundHandle jumpSound;
+static SoundHandle landSound;
 
 bool Game::isRunning = false;
 
@@ -84,11 +90,26 @@ void Game::init() {
     systemManager.registerSystem<AnimationSystem>();
     systemManager.registerSystem<TileMapSystem>();
     systemManager.registerSystem<RenderSystem>();
+    // Registered last on purpose: draw order == registration order, and debug
+    // overlays must paint on top of tiles and sprites.
+    DebugDrawSystem& debugDraw = systemManager.registerSystem<DebugDrawSystem>();
+    debugDraw.setCollisionSystem(collisionSystem);
+
+    // Input action bindings (Input::update() runs each frame in handleEvents)
+    Input::bindAction("left",         { SDL_SCANCODE_A, SDL_SCANCODE_LEFT });
+    Input::bindAction("right",        { SDL_SCANCODE_D, SDL_SCANCODE_RIGHT });
+    Input::bindAction("jump",         { SDL_SCANCODE_SPACE });
+    Input::bindAction("run",          { SDL_SCANCODE_LSHIFT });
+    Input::bindAction("reset",        { SDL_SCANCODE_R });
+    Input::bindAction("toggle_debug", { SDL_SCANCODE_C });
+    Input::bindAction("quit",         { SDL_SCANCODE_ESCAPE });
 
     // Load assets
     assetManager.addAsset("player", "assets/player_anims.dat");
     assetManager.addAsset("tileset", "assets/terrain_asset.dat");
     assetManager.addFont("baseFont", "assets/font.ttf", 16);
+    jumpSound = assetManager.addSound("jump", "assets/jump.mp3");
+    landSound = assetManager.addSound("land", "assets/land.mp3");
 
     // Create entities
     player = &entityManager.addEntity();
@@ -147,41 +168,32 @@ void Game::init() {
 
 
 void Game::handleEvents() {
+    // SDL events: only window-level things live here (quit, resize...).
     while(SDL_PollEvent(&event)) {
-        switch (event.type){
-        case SDL_QUIT:
-            isRunning = false;
-            break;
-
-        case SDL_KEYDOWN:
-            if (event.key.keysym.sym == SDLK_SPACE && event.key.repeat == 0){
-                jumpRequested = true; // consumed in update() if grounded
-            }
-            else if (event.key.keysym.sym == SDLK_ESCAPE){
-                isRunning = false;
-            }
-            else if (event.key.keysym.sym == SDLK_r){
-                // Reset the player to spawn
-                player->getComponent<TransformComponent>().setPos(playerSpawn.x, playerSpawn.y);
-                player->getComponent<VelocityComponent>().setVel(0.f, 0.f);
-                Core::getCamera().snapToTarget();
-            }
-            else if (event.key.keysym.sym == SDLK_c && event.key.repeat == 0){
-                // Toggle hitbox debug draw for all collision bodies.
-            }
-            break;
-
-        default:
-            break;
-        }
+        if (event.type == SDL_QUIT) isRunning = false;
     }
 
-    // Horizontal control (velocity-based; MovementSystem integrates it).
-    const Uint8* keystates = SDL_GetKeyboardState(nullptr);
-    float vx = 0.f;
-    if (keystates[SDL_SCANCODE_LEFT]  || keystates[SDL_SCANCODE_A]) vx -= runSpeed;
-    if (keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) vx += runSpeed;
-    if (keystates[SDL_SCANCODE_LSHIFT]) vx *= runBoost;
+    // Snapshot the keyboard once per frame; everything below uses edge-aware queries.
+    Input::update();
+
+    if (Input::wasActionPressed("quit")) isRunning = false;
+
+    if (Input::wasActionPressed("toggle_debug")) {
+        DebugDrawSystem::toggle(); // 'c' shows/hides all collision AABBs
+    }
+
+    if (Input::wasActionPressed("reset")) {
+        player->getComponent<TransformComponent>().setPos(playerSpawn.x, playerSpawn.y);
+        player->getComponent<VelocityComponent>().setVel(0.f, 0.f);
+        Core::getCamera().snapToTarget();
+    }
+
+    // Edge: only the frame the key goes down. Held space does not re-request.
+    if (Input::wasActionPressed("jump")) jumpRequested = true;
+
+    // Level: held keys drive continuous movement.
+    float vx = Input::getAxis("left", "right") * runSpeed;
+    if (Input::isActionDown("run")) vx *= runBoost;
 
     VelocityComponent& vel = player->getComponent<VelocityComponent>();
     vel.linearVel.x = vx;
@@ -214,6 +226,7 @@ void Game::update() {
 
     // Grounded = last fixed step produced a contact pushing the player up.
     // (normal is the direction the entity moves to separate; floor => (0,-1))
+    playerGroundedPrev = playerGrounded;
     playerGrounded = false;
     for (const ContactEvent& contact : collisionSystem->contacts()) {
         if (contact.entityA == player && contact.normal.y < -0.5f) {
@@ -222,11 +235,17 @@ void Game::update() {
         }
     }
 
+    // Landing = airborne -> grounded edge across fixed steps.
+    if (playerGrounded && !playerGroundedPrev) {
+        assetManager.playSound(landSound);
+    }
+
     // Placeholder jump — replaced by a proper PlayerController (coyote time,
     // jump buffering, variable height) in a later step.
     if (jumpRequested) {
         if (playerGrounded) {
             player->getComponent<VelocityComponent>().linearVel.y = -jumpSpeed;
+            assetManager.playSound(jumpSound);
         }
         jumpRequested = false;
     }

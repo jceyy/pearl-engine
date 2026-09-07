@@ -246,42 +246,4 @@ void CollisionSystem::update() {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Debug draw
-// ---------------------------------------------------------------------------
-
-void CollisionSystem::draw() {
-    if (!Core::renderer) return;
-
-    const int ppu = Core::settings.render.pixelsPerUnit;
-    const Vector2D camTopLeft = Core::getCamera().topLeft();
-    const size_t systemID = SystemID::getSystemTypeID<CollisionSystem>();
-    auto& entities = entityManager_->getEntitiesForSystem(systemID);
-
-    for (size_t i = 0; i < entities.size(); ++i) {
-        const RigidBodyComponent& body = entities[i]->getComponent<RigidBodyComponent>();
-        if (!body.showShape) continue;
-
-        const TransformComponent& tf = entities[i]->getComponent<TransformComponent>();
-        const Collision::AABB aabb = worldAABB(body, tf);
-
-        switch (body.bodyType) {
-            case Collision::BodyType::Dynamic:
-                SDL_SetRenderDrawColor(Core::renderer, 255,  80,  80, 255); break;
-            case Collision::BodyType::Kinematic:
-                SDL_SetRenderDrawColor(Core::renderer,  80, 180, 255, 255); break;
-            case Collision::BodyType::Static:
-                SDL_SetRenderDrawColor(Core::renderer,  80, 220,  80, 255); break;
-        }
-
-        SDL_FRect rect {
-            (aabb.x - camTopLeft.x) * static_cast<float>(ppu),
-            (aabb.y - camTopLeft.y) * static_cast<float>(ppu),
-            aabb.w * static_cast<float>(ppu),
-            aabb.h * static_cast<float>(ppu)
-        };
-        SDL_RenderDrawRectF(Core::renderer, &rect);
-    }
-}
-
 } // namespace PRL

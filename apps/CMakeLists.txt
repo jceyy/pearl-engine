@@ -13,7 +13,8 @@ if (WIN32)
     SDL2::SDL2
     SDL2_image::SDL2_image
     SDL2_ttf::SDL2_ttf
+    SDL2_mixer::SDL2_mixer
     )
 else()
-    target_link_libraries(engine-test PRIVATE prl_library ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES})
+    target_link_libraries(engine-test PRIVATE prl_library ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${SDL2_MIXER_LIBRARIES})
 endif()

@@ -40,8 +40,11 @@ public:
     // Per-frame contact list; cleared at the start of each update().
     const std::vector<ContactEvent>& contacts() const noexcept { return contacts_; }
 
+    // Registered static collision worlds (read by DebugDrawSystem).
+    const std::vector<std::pair<TileMap*, LayerID>>& tileMaps() const noexcept { return tileMaps_; }
+
     void update() override;
-    void draw() override;  // draws world AABBs when RigidBodyComponent::showShape is true
+    void draw() override {}  // debug drawing lives in DebugDrawSystem (must draw last)
 
     static inline size_t getInstanceCount() noexcept { return instanceCount_; }
 

@@ -305,6 +305,55 @@ void AssetManager::loadAnimationSection_(const std::string& datFile, const std::
     }
 }
 
+SoundHandle AssetManager::addSound(const std::string& soundID, const std::string& fileName) {
+    auto it = soundAssetHandles_.find(soundID);
+    if (it != soundAssetHandles_.end()) {
+        Logging::log("Sound '" + soundID + "' already loaded", "AssetManager::addSound()");
+        return it->second;
+    }
+
+    // Mix_LoadWAV loads any format SDL_mixer was built with (wav, ogg, mp3, flac).
+    Mix_Chunk* chunk = Mix_LoadWAV(fileName.c_str());
+    if (!chunk) {
+        Logging::err("Unable to load sound '" + fileName + "' : " + std::string(Mix_GetError()),
+                     "AssetManager::addSound()");
+        return invalidHandle<SoundAsset>();
+    }
+
+    std::size_t index;
+    if (!soundAssetFreeList_.empty()) {
+        index = soundAssetFreeList_.back();
+        soundAssetFreeList_.pop_back();
+        soundAssetSlots_[index].asset = SoundAsset(chunk);
+        soundAssetSlots_[index].assetInUse = true;
+    } else {
+        index = soundAssetSlots_.size();
+        soundAssetSlots_.emplace_back();
+        soundAssetSlots_[index].asset = SoundAsset(chunk);
+        soundAssetSlots_[index].assetInUse = true;
+    }
+
+    SoundHandle handle{ index, soundAssetSlots_[index].generation };
+    soundAssetHandles_.emplace(soundID, handle);
+    assetFilenameLookup_.emplace(soundID, fileName);
+    Logging::log("Loaded sound '" + soundID + "' from " + fileName, "AssetManager::addSound()");
+    return handle;
+}
+
+
+int AssetManager::playSound(const SoundHandle& handle, int loops, int channel) {
+    const SoundAsset* sound = getSoundAsset(handle);
+    if (!sound || !sound->chunk) return -1;
+
+    const int usedChannel = Mix_PlayChannel(channel, sound->chunk, loops);
+    if (usedChannel == -1) {
+        Logging::err("Unable to play sound : " + std::string(Mix_GetError()),
+                     "AssetManager::playSound()");
+    }
+    return usedChannel;
+}
+
+
 void AssetManager::createProjectile(Vector2D pos, Vector2D vel, float range, float speed, const TextureID& textureID){
     auto& projectile(entityManager_.addEntity());
     projectile.addComponent<TransformComponent>(pos.x, pos.y);

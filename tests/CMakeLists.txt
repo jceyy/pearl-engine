@@ -17,7 +17,7 @@
 # add_library(GTest::GTest INTERFACE IMPORTED)
 # target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
-# target_link_libraries(engine-gtests ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES} GTest::GTest)
+# target_link_libraries(engine-gtests ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${SDL2_MIXER_LIBRARIES} GTest::GTest)
 # include(GoogleTest)
 # gtest_discover_tests(engine-gtests)
 
@@ -49,7 +49,7 @@ add_executable(geometry-test geometry_test.cpp)
 
 # Should be linked to the main library, as well as the SDL2 related libraries
 target_link_libraries(geometry-test PRIVATE prl_library 
-${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES} 
+${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${SDL2_MIXER_LIBRARIES} 
 GTest::gtest_main) 
 
 # If you register a test, then ctest and make test will run it. You can also run
