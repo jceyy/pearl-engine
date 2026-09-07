@@ -20,7 +20,7 @@ namespace PRL {
             inline float centerX() const noexcept { return x + w / 2; }
             inline float centerY() const noexcept { return y + h / 2; }
 
-            const AABB& boundingAABB() const { return *this; }
+            inline const AABB& boundingAABB() const { return *this; }
 
             float x, y, w, h;
         };

@@ -33,7 +33,6 @@ namespace PRL {
         static SDL_Event event;
 
         static bool isRunning;
-        static SDL_FRect camera;
 
         constexpr static int pixelsPerUnit = 32;
 

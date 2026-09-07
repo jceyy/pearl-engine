@@ -11,6 +11,8 @@ bool Core::initialized_ = false;
 
 // Time management
 uint64_t Core::currentTimeUS_ = 0;
+double Core::fixedDeltaTimeS_ = 1.0 / 120.0;
+double Core::renderFps_ = 0.0;
 std::chrono::high_resolution_clock::time_point Core::initTime;
 
 // Settings
@@ -24,6 +26,11 @@ void Core::init(SDL_Rect windowRect, Uint32 rendererFlags, Uint32 windowFlags, c
 
     settings.render.screenSize_.set(windowRect.w, windowRect.h);
     settings.render.logicalSize_.set(windowRect.w, windowRect.h);
+
+    // Main camera: viewport spans the logical size, expressed in world units.
+    getCamera().setViewportSize(
+        windowRect.w / static_cast<float>(settings.render.pixelsPerUnit),
+        windowRect.h / static_cast<float>(settings.render.pixelsPerUnit));
 
     if(SDL_Init(SDL_INIT_EVERYTHING) == 0) {
         PRL::Logging::log("SDL subsystems initialized", "PRL::Core::init()");

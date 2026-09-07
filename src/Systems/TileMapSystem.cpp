@@ -29,6 +29,12 @@ void TileMapSystem::draw() {
     size_t renderSystemID = SystemID::getSystemTypeID<TileMapSystem>();
     auto& tileMaps = entityManager_->getEntitiesForSystem(renderSystemID);
 
+    const Camera& camera = Core::getCamera();
+    const Vector2D camTopLeft = camera.topLeft();
+    const int refPPU = Core::settings.render.pixelsPerUnit;
+    const float camOffsetX = camTopLeft.x * static_cast<float>(refPPU);
+    const float camOffsetY = camTopLeft.y * static_cast<float>(refPPU);
+
     SDL_FRect dst;
     SDL_Rect src;
     for (size_t i = 0; i < tileMaps.size(); ++i) {
@@ -54,8 +60,8 @@ void TileMapSystem::draw() {
                         float pxlUnitScale = static_cast<float>(refPixelsPerUnit) / static_cast<float>(pixelsPerUnit);
                         
                         dst = {
-                            static_cast<float>((chunk.chunkCoord.x + tilemap.tileSize_.x*tileX)) * pxlUnitScale,
-                            static_cast<float>((chunk.chunkCoord.y + tilemap.tileSize_.y*tileY)) * pxlUnitScale,
+                            static_cast<float>((chunk.chunkCoord.x + tilemap.tileSize_.x*tileX)) * pxlUnitScale - camOffsetX,
+                            static_cast<float>((chunk.chunkCoord.y + tilemap.tileSize_.y*tileY)) * pxlUnitScale - camOffsetY,
                             static_cast<float>(tilemap.tileSize_.x) * pxlUnitScale,
                             static_cast<float>(tilemap.tileSize_.y) * pxlUnitScale
                         };

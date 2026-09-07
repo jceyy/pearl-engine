@@ -1,5 +1,4 @@
 #include <iostream>
-#include <thread>
 #include <string>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -27,42 +26,48 @@ int main(int argc, char** argv) {
 
     PRL::Core::init({SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600}, renderFlags, windowFlags, "Game engine test");
     
-    // Game initialization
-    const uint64_t FPS = 60;
-    const uint64_t FRAME_DELAY = 1000000UL / FPS;
-    uint64_t frameStart(0), frameTime(0);
+    // --- Fixed-timestep simulation, decoupled from rendering -----------------
+    // update() runs at a constant FIXED_DT (deterministic physics); render()
+    // runs once per loop iteration and is throttled by vsync (PRESENTVSYNC).
+    // Classic accumulator pattern: https://gafferongames.com/post/fix_your_timestep/
+    constexpr double FIXED_DT = 1.0 / 120.0;   // seconds per simulation step
+    constexpr double MAX_FRAME_TIME = 0.25;    // clamp to avoid the spiral of death
+    PRL::Core::setFixedDeltaTime(FIXED_DT);
+
     PRL::Game *game = nullptr;
 
     try {
         game = new PRL::Game();
         game->init();
-        
+
+        PRL::Core::updateCurrentTime();
+        uint64_t previousUS = PRL::Core::getCurrentTimeUS();
+        double accumulator = 0.0;
+
         while(PRL::Game::isRunning){
-            frameStart = PRL::Core::getCurrentTimeUS();
+            PRL::Core::updateCurrentTime();
+            const uint64_t nowUS = PRL::Core::getCurrentTimeUS();
+            double frameTime = (nowUS - previousUS) * 1e-6;
+            previousUS = nowUS;
+            if (frameTime > MAX_FRAME_TIME) frameTime = MAX_FRAME_TIME;
+            accumulator += frameTime;
 
             game->handleEvents();
-            game->update();
-            game->render();
 
-            frameTime = PRL::Core::getCurrentTimeUS() - frameStart;
-            if (FRAME_DELAY > frameTime){
-                // auto timeStart = std::chrono::high_resolution_clock::now();
-                std::this_thread::sleep_for(static_cast<std::chrono::microseconds>(FRAME_DELAY - frameTime));
-                // auto sleptFor = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - timeStart).count();
-                // // std::cout << "main() : Slept for " << sleptFor << " us; Planned for " 
-                // //           << FRAME_DELAY - frameTime << " us. (rel. diff of "
-                // //           << (sleptFor - (FRAME_DELAY - frameTime)) / static_cast<double>(FRAME_DELAY - frameTime) * 100 << "%, "
-                // //           << (sleptFor - (FRAME_DELAY - frameTime)) << " us)" << std::endl;
+            while (accumulator >= FIXED_DT) {
+                game->update();
+                accumulator -= FIXED_DT;
             }
+
+            game->render();
         }
     } catch(std::exception& e){
         PRL::Logging::log("Exception thrown: " + std::string(e.what()), "main");
         std::cerr << "Exception thrown: " << e.what() << std::endl;
     }
 
-    // Clean the game
-    game->clean();
-    // Clean the engine + SDL
+    // Clean the game (Game::~Game calls clean()), then the engine + SDL
+    delete game;
     PRL::Core::clean();
 
     // Wait for enter press to close console, to allow reading of logs in DEBUG mode

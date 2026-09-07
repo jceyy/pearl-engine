@@ -1,5 +1,5 @@
 #include "ECS/ProjectileComponent.hpp"
-#include "Game.hpp"
+#include "Core.hpp"
 
 namespace PRL {
 
@@ -23,12 +23,17 @@ void ProjectileComponent::update(){
     if (distanceTraveled_ > range_) {
         entity->destroy();
     }
-    else if (transform_->position.x > Game::camera.x + Game::camera.w ||
-             transform_->position.y > Game::camera.y + Game::camera.h ||
-             transform_->position.x < Game::camera.x ||
-             transform_->position.y < Game::camera.y){
+    else {
+        // Destroy projectiles that leave the visible world-space view (small margin).
+        const Collision::AABB view = Core::getCamera().viewAABB();
+        const float margin = 2.f; // world units
+        if (transform_->position.x > view.x + view.w + margin ||
+            transform_->position.y > view.y + view.h + margin ||
+            transform_->position.x < view.x - margin ||
+            transform_->position.y < view.y - margin){
                 entity->destroy();
-             }
+        }
+    }
 }
 
 } // namespace PRL

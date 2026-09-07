@@ -4,6 +4,7 @@
 #include <chrono>
 #include "SDL2/SDL.h"
 #include "AssetManager.hpp"
+#include "Camera.hpp"
 #include "Systems/Systems.hpp"
 
 namespace PRL {
@@ -63,6 +64,22 @@ namespace PRL {
     
         static void updateCurrentTime() noexcept;
         inline static uint64_t getCurrentTimeUS() noexcept { return currentTimeUS_; }
+
+        //! \brief Fixed timestep (seconds) used by simulation systems (MovementSystem...).
+        //! Set once by the application before the main loop starts.
+        inline static void setFixedDeltaTime(double dt) noexcept { fixedDeltaTimeS_ = dt; }
+        inline static double getFixedDeltaTime() noexcept { return fixedDeltaTimeS_; }
+
+        //! \brief Current measured frames per second, updated by the application each frame.
+        inline static void setFPS(double fps) noexcept { renderFps_ = fps; }
+        inline static double getFPS() noexcept { return renderFps_; }
+
+        //! \brief Main camera used by render systems. Viewport is initialized in init()
+        //! from the logical size and pixelsPerUnit; follow/bounds are set by game code.
+        static inline Camera& getCamera() noexcept {
+            static Camera instance;
+            return instance;
+        }
         static SDL_Renderer* renderer;
 
         static PRLSettings settings;
@@ -75,6 +92,8 @@ namespace PRL {
 
         // Time management
         static uint64_t currentTimeUS_;
+        static double fixedDeltaTimeS_;
+        static double renderFps_;
         static std::chrono::_V2::system_clock::time_point initTime;
     };
 }

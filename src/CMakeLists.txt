@@ -41,6 +41,7 @@ target_sources(prl_library
   PRIVATE
     Animation.cpp
     AssetManager.cpp
+    Camera.cpp
     Collision.cpp
     Core.cpp
     Game.cpp 
@@ -68,6 +69,7 @@ target_sources(prl_library
     ECS/VelocityComponent.cpp
     Systems/AnimationSystem.cpp
     Systems/CollisionSystem.cpp
+    Systems/MovementSystem.cpp
     Systems/RenderSystem.cpp
     Systems/TileMapSystem.cpp
     Systems/Systems.cpp

@@ -254,6 +254,7 @@ void CollisionSystem::draw() {
     if (!Core::renderer) return;
 
     const int ppu = Core::settings.render.pixelsPerUnit;
+    const Vector2D camTopLeft = Core::getCamera().topLeft();
     const size_t systemID = SystemID::getSystemTypeID<CollisionSystem>();
     auto& entities = entityManager_->getEntitiesForSystem(systemID);
 
@@ -274,8 +275,8 @@ void CollisionSystem::draw() {
         }
 
         SDL_FRect rect {
-            aabb.x * static_cast<float>(ppu),
-            aabb.y * static_cast<float>(ppu),
+            (aabb.x - camTopLeft.x) * static_cast<float>(ppu),
+            (aabb.y - camTopLeft.y) * static_cast<float>(ppu),
             aabb.w * static_cast<float>(ppu),
             aabb.h * static_cast<float>(ppu)
         };
