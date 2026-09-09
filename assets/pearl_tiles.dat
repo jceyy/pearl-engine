@@ -1,0 +1,48 @@
+# Pearl tileset - handcrafted 32px tiles with collision bindings
+
+[texture]
+pixels_per_unit 32
+filtering_mode nearest
+file assets/pearl_tiles.png
+
+[sprites]
+default_size  1.0 1.0
+default_pivot 0.0 0.0
+
+# <name>         <x> <y> <w> <h>
+grass_top_l      0   0   32  32
+grass_top        32  0   32  32
+grass_top_r      64  0   32  32
+grass_col        96  0   32  32
+dirt             128 0   32  32
+dirt_rocks       160 0   32  32
+stone            192 0   32  32
+stone_brick      224 0   32  32
+plat_l           0   32  32  32
+plat_m           32  32  32  32
+plat_r           64  32  32  32
+ladder           96  32  32  32
+spikes           128 32  32  32
+crate            160 32  32  32
+stone2           192 32  32  32
+bush             224 32  32  32
+
+[collision]
+# <region>  <none|solid|oneway|ladder|hazard|slope_l|slope_r>
+# Unlisted regions default to none.
+grass_top_l  solid
+grass_top    solid
+grass_top_r  solid
+grass_col    solid
+dirt         solid
+dirt_rocks   solid
+stone        solid
+stone_brick  solid
+plat_l       oneway
+plat_m       oneway
+plat_r       oneway
+ladder       ladder
+spikes       hazard
+crate        solid
+stone2       solid
+bush         none

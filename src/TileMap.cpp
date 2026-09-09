@@ -88,7 +88,8 @@ void TileMap::loadMap(const std::string& fileName) {
     loadTableSection_(sectionLines["[table]"]);
     loadLayerSections_(layerSections, renderOrder, fullTilemap);
     loadCollisionSection_(sectionLines["[collision]"]);
-    
+    bakeCollisionGrid_(fullTilemap);
+
     // Create chunks
     constructChunks_(fullTilemap);
     return;
@@ -337,11 +338,103 @@ void TileMap::loadLayerSections_(std::vector<std::vector<std::string>>& layerSec
 }
 
 
+//! Parses the optional [collision] section of a .map file: a mapSize grid of
+//! integers, one row per line, mirroring the tile layers:
+//!   -1        = inherit the type bound to the tile's region in the tileset .dat
+//!    0..6     = force this cell to that Collision::TileCollisionType
+//! Lets a map override art-driven collision locally (secret passages, etc).
 void TileMap::loadCollisionSection_(const std::vector<std::string>& lines) {
-    if (lines.empty()) {
-        hasCollisionLayer_ = false;
+    collisionOverride_.clear();
+    hasCollisionLayer_ = !lines.empty();
+    if (!hasCollisionLayer_) return;
+
+    collisionOverride_.reserve(static_cast<size_t>(mapSize_.x) * mapSize_.y);
+    const int16_t maxType = static_cast<int16_t>(Collision::TileCollisionType::Count) - 1;
+
+    long long value;
+    int nRows = 0;
+    for (const auto& l : lines) {
+        std::istringstream iss(l);
+        int nCols = 0;
+        while (iss >> value) {
+            if (value < -1 || value > maxType) {
+                Logging::err("Collision value " + std::to_string(value) + " out of range (-1 to "
+                    + std::to_string(maxType) + ") in [collision] section", "PRL::TileMap::loadCollisionSection_()");
+                value = -1;
+            }
+            collisionOverride_.push_back(static_cast<int16_t>(value));
+            ++nCols;
+        }
+        if (nCols == 0) continue; // comment-only / blank line
+        if (nCols != mapSize_.x) {
+            Logging::err("Row " + std::to_string(nRows) + " of [collision] section has " + std::to_string(nCols)
+                + " values, expected " + std::to_string(mapSize_.x), "PRL::TileMap::loadCollisionSection_()");
+        }
+        ++nRows;
     }
-    // TO DO: implement the rest of the function when collision layer is needed
+    if (nRows != mapSize_.y) {
+        Logging::err("[collision] section has " + std::to_string(nRows) + " rows, expected "
+            + std::to_string(mapSize_.y), "PRL::TileMap::loadCollisionSection_()");
+        collisionOverride_.resize(static_cast<size_t>(mapSize_.x) * mapSize_.y, -1);
+    }
+}
+
+
+//! Bakes the final per-tile collision grid consumed by the CollisionSystem:
+//!   1. defaults come from the tileset's region->type bindings, scanning layers
+//!      in render order (later layers win when they define a non-None type);
+//!   2. the map's [collision] override grid is applied on top;
+//!   3. legacy fallback: if the tileset has no bindings AND the map has no
+//!      [collision] section, every non-empty tile is treated as Solid, which
+//!      preserves the behavior of maps that predate collision metadata.
+void TileMap::bakeCollisionGrid_(const std::vector<std::vector<Tile>>& fullTilemap) {
+    const size_t tileCount = static_cast<size_t>(mapSize_.x) * mapSize_.y;
+    collisionGrid_.assign(tileCount, static_cast<uint8_t>(Collision::TileCollisionType::None));
+    if (tileCount == 0) return;
+
+    const TextureHandle textureHandle = PRL::Core::getAssetManager().getTextureHandle(textureName_);
+    const TextureAsset* textureAsset = PRL::Core::getAssetManager().getTextureAsset(textureHandle);
+
+    bool tilesetHasBindings = false;
+    if (textureAsset) {
+        for (uint8_t t : textureAsset->regionCollision)
+            if (t != 0) { tilesetHasBindings = true; break; }
+    }
+
+    // 1. Tileset-driven defaults
+    if (tilesetHasBindings) {
+        for (size_t layer = 0; layer < fullTilemap.size(); ++layer) {
+            for (size_t i = 0; i < tileCount; ++i) {
+                const Tile& tile = fullTilemap[layer][i];
+                if (tile.ID == Tile::emptyTileID) continue;
+                if (static_cast<size_t>(tile.ID) >= tileDefinitions_.size()) continue;
+
+                const TileDefinition& def = tileDefinitions_[tile.ID];
+                if (!def.inUse || def.textureRegion >= textureAsset->regionCollision.size()) continue;
+
+                const uint8_t type = textureAsset->regionCollision[def.textureRegion];
+                if (type != 0) collisionGrid_[i] = type;
+            }
+        }
+    }
+    // 3. Legacy fallback (no metadata anywhere): non-empty = Solid
+    else if (!hasCollisionLayer_) {
+        for (size_t layer = 0; layer < fullTilemap.size(); ++layer)
+            for (size_t i = 0; i < tileCount; ++i)
+                if (fullTilemap[layer][i].ID != Tile::emptyTileID)
+                    collisionGrid_[i] = static_cast<uint8_t>(Collision::TileCollisionType::Solid);
+        Logging::log("No collision metadata found; treating all non-empty tiles as Solid",
+                     "PRL::TileMap::bakeCollisionGrid_()");
+    }
+
+    // 2. Per-cell map overrides
+    if (hasCollisionLayer_ && collisionOverride_.size() == tileCount) {
+        for (size_t i = 0; i < tileCount; ++i)
+            if (collisionOverride_[i] >= 0)
+                collisionGrid_[i] = static_cast<uint8_t>(collisionOverride_[i]);
+    }
+    collisionOverride_.clear();
+    collisionOverride_.shrink_to_fit();
 }
 
 void TileMap::constructChunks_(const std::vector<std::vector<Tile>>& fullTilemap) {

@@ -28,14 +28,11 @@ void DebugDrawSystem::draw() {
     const Vector2D camTopLeft = camera.topLeft();
     const Collision::AABB view = camera.viewAABB();
 
-    // --- Solid tiles of every tilemap registered with the CollisionSystem ---
+    // --- Collision tiles of every tilemap registered with the CollisionSystem ---
     if (collisionSystem_) {
-        SDL_SetRenderDrawColor(Core::renderer, 80, 220, 80, 255);
-
         const auto& tileMaps = collisionSystem_->tileMaps();
         for (size_t t = 0; t < tileMaps.size(); ++t) {
             const TileMap& map = *tileMaps[t].first;
-            const LayerID solidLayer = tileMaps[t].second;
 
             const Vec2D<int> tileSize = map.tileSize();
             const Vec2D<int> mapSize  = map.mapSize();
@@ -50,17 +47,22 @@ void DebugDrawSystem::draw() {
 
             for (int ty = tileY0; ty <= tileY1; ++ty) {
                 for (int tx = tileX0; tx <= tileX1; ++tx) {
-                    const int chunkX = tx >> TileMap::CHUNK_BIT_SHIFT;
-                    const int chunkY = ty >> TileMap::CHUNK_BIT_SHIFT;
-                    const int localX = tx & TileMap::CHUNK_TILE_MASK;
-                    const int localY = ty & TileMap::CHUNK_TILE_MASK;
+                    using Collision::TileCollisionType;
+                    const TileCollisionType type = map.collisionAt(tx, ty);
+                    if (type == TileCollisionType::None) continue;
 
-                    const TileChunk& chunk = map.getChunk(chunkX, chunkY);
-                    if (solidLayer >= static_cast<LayerID>(chunk.tiles.size())) continue;
-
-                    const Tile& tile = chunk.tiles[solidLayer]
-                                                  [localY * TileMap::CHUNK_TILE_SIZE + localX];
-                    if (tile.ID == Tile::emptyTileID) continue;
+                    switch (type) {
+                        case TileCollisionType::Solid:
+                            SDL_SetRenderDrawColor(Core::renderer,  80, 220,  80, 255); break; // green
+                        case TileCollisionType::OneWay:
+                            SDL_SetRenderDrawColor(Core::renderer, 255, 170,  40, 255); break; // orange
+                        case TileCollisionType::Ladder:
+                            SDL_SetRenderDrawColor(Core::renderer,  80, 180, 255, 255); break; // blue
+                        case TileCollisionType::Hazard:
+                            SDL_SetRenderDrawColor(Core::renderer, 255,  60,  60, 255); break; // red
+                        default:
+                            SDL_SetRenderDrawColor(Core::renderer, 200, 120, 255, 255); break; // slopes: purple
+                    }
 
                     const SDL_FRect rect {
                         (tx * tsX - camTopLeft.x) * ppu,

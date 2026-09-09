@@ -284,6 +284,35 @@ namespace PRL {
 
 
 
+        //! \brief Per-tile collision behavior. Stored as one byte per tile in
+        //! TileMap::collisionGrid_ — the hot path only ever compares integers.
+        //! File formats use readable tokens (parsed ONCE at load, see
+        //! tileCollisionTypeFromToken), never strings at runtime.
+        enum class TileCollisionType : uint8_t {
+            None    = 0,  //!< no collision
+            Solid   = 1,  //!< full block
+            OneWay  = 2,  //!< blocks only when landing from above (platforms)
+            Ladder  = 3,  //!< no resolution; emits overlap contact events
+            Hazard  = 4,  //!< no resolution; emits overlap contact events (spikes, lava...)
+            SlopeL  = 5,  //!< 45 deg, rising towards the left  — resolved as Solid for now
+            SlopeR  = 6,  //!< 45 deg, rising towards the right — resolved as Solid for now
+            Count
+        };
+
+        //! \brief Load-time (cold path) parser: token or integer -> type.
+        //! Returns None for unknown tokens.
+        inline TileCollisionType tileCollisionTypeFromToken(const std::string& token) {
+            if (token == "none"   || token == "0") return TileCollisionType::None;
+            if (token == "solid"  || token == "1") return TileCollisionType::Solid;
+            if (token == "oneway" || token == "2") return TileCollisionType::OneWay;
+            if (token == "ladder" || token == "3") return TileCollisionType::Ladder;
+            if (token == "hazard" || token == "4") return TileCollisionType::Hazard;
+            if (token == "slope_l"|| token == "5") return TileCollisionType::SlopeL;
+            if (token == "slope_r"|| token == "6") return TileCollisionType::SlopeR;
+            return TileCollisionType::None;
+        }
+
+
         // Sensor regions — used by SensorComponent for triggers, hitboxes, and sense areas.
         enum class SensorRole : uint8_t {
             Hurt,    // receives hits

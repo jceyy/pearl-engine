@@ -98,6 +98,7 @@ void CollisionSystem::resolveVelocity(VelocityComponent& vel, const Vector2D& no
 void CollisionSystem::resolveVsTileMap(Entity* entity, RigidBodyComponent& body,
                                         TransformComponent& tf, TileMap& map,
                                         LayerID solidLayer) {
+    (void)solidLayer; // superseded by the baked collision grid; kept for API compatibility
     const int ppu = Core::settings.render.pixelsPerUnit;
     const Vec2D<int> tileSize = map.tileSize();
     const Vec2D<int> mapSize  = map.mapSize();
@@ -114,23 +115,22 @@ void CollisionSystem::resolveVsTileMap(Entity* entity, RigidBodyComponent& body,
     int tileX1 = std::min(mapSize.x - 1, static_cast<int>(std::floor((aabb.x + aabb.w) / tsX)));
     int tileY1 = std::min(mapSize.y - 1, static_cast<int>(std::floor((aabb.y + aabb.h) / tsY)));
 
+    // Fixed timestep, used to reconstruct the previous position for one-way checks.
+    const float dt = static_cast<float>(Core::getFixedDeltaTime());
+    float velY = 0.f;
+    VelocityComponent* vel = nullptr;
+    if (entity->hasComponent<VelocityComponent>()) {
+        vel = &entity->getComponent<VelocityComponent>();
+        velY = vel->linearVel.y;
+    }
+
     for (int ty = tileY0; ty <= tileY1; ++ty) {
         for (int tx = tileX0; tx <= tileX1; ++tx) {
-            // Convert global tile coord → chunk + local.
-            // Access via getChunk() + local index (same pattern as TileMapSystem::draw).
-            int chunkX = tx >> TileMap::CHUNK_BIT_SHIFT;
-            int chunkY = ty >> TileMap::CHUNK_BIT_SHIFT;
-            int localX = tx & TileMap::CHUNK_TILE_MASK;
-            int localY = ty & TileMap::CHUNK_TILE_MASK;
+            using Collision::TileCollisionType;
 
-            const TileChunk& chunk = map.getChunk(chunkX, chunkY);
-            if (solidLayer >= static_cast<LayerID>(chunk.tiles.size())) continue;
-
-            const Tile& tile = chunk.tiles[solidLayer]
-                                          [localY * TileMap::CHUNK_TILE_SIZE + localX];
-            if (tile.ID == Tile::emptyTileID) continue;
-
-            // TODO: once tile CollisionType metadata exists, handle slopes and platforms here.
+            // Baked collision grid: one byte per tile, no TileDefinition lookups.
+            const TileCollisionType type = map.collisionAt(tx, ty);
+            if (type == TileCollisionType::None) continue;
 
             Collision::AABB tileAABB { tx * tsX, ty * tsY, tsX, tsY };
 
@@ -141,19 +141,43 @@ void CollisionSystem::resolveVsTileMap(Entity* entity, RigidBodyComponent& body,
             float    penetration;
             if (!testAABBvsAABB(aabb, tileAABB, normal, penetration)) continue;
 
+            // Non-blocking tiles: report the overlap, never resolve.
+            if (type == TileCollisionType::Ladder || type == TileCollisionType::Hazard) {
+                contacts_.push_back({ entity, nullptr, {0.f, 0.f}, penetration, type });
+                continue;
+            }
+
+            // One-way platforms block only when landing from above:
+            //  - the entity must be moving down (or resting), and
+            //  - its bottom edge must have been at or above the tile top last step.
+            if (type == TileCollisionType::OneWay) {
+                const float bottom     = aabb.y + aabb.h;
+                const float tileTop    = tileAABB.y;
+                const float prevBottom = bottom - velY * dt;
+                const float slop       = 0.02f;
+                if (velY < 0.f) continue;                   // jumping up through
+                if (prevBottom > tileTop + slop) continue;  // came from below or the side
+                normal = { 0.f, -1.f };
+                penetration = bottom - tileTop;
+            }
+            // Solid — and, for now, slopes resolve as full solid blocks. Proper
+            // slope resolution (bottom-center height sampling) comes with the
+            // slope parametrization pass.
+
             if (Collision::hasFlag(body.responseFlags, Collision::CollisionResponseFlags::Resolve)) {
                 resolvePosition(tf, normal, penetration);
                 aabb = worldAABB(body, tf);
             }
 
             if (Collision::hasFlag(body.responseFlags, Collision::CollisionResponseFlags::Impulse)) {
-                if (entity->hasComponent<VelocityComponent>()) {
+                if (vel) {
                     // restitution = 0 (inelastic) until PhysicsComponent integration is added.
-                    resolveVelocity(entity->getComponent<VelocityComponent>(), normal, 0.f);
+                    resolveVelocity(*vel, normal, 0.f);
+                    velY = vel->linearVel.y;
                 }
             }
 
-            contacts_.push_back({ entity, nullptr, normal, penetration });
+            contacts_.push_back({ entity, nullptr, normal, penetration, type });
         }
     }
 }

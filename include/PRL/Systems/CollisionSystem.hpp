@@ -24,6 +24,9 @@ struct ContactEvent {
     Entity*  entityB     = nullptr;   // nullptr = tilemap contact
     Vector2D normal;                  // unit vector: direction entityA should move to separate
     float    penetration = 0.f;
+    // For tile contacts: the tile's collision type. Ladder/Hazard tiles emit
+    // pure overlap events (normal {0,0}, no resolution) for gameplay to consume.
+    Collision::TileCollisionType tileType = Collision::TileCollisionType::None;
 };
 
 class CollisionSystem : public System {
@@ -32,8 +35,9 @@ public:
         ComponentSignature::create<TransformComponent, RigidBodyComponent>());
     ~CollisionSystem();
 
-    // Register a TileMap as a static collision world.
-    // solidLayer: index of the tile layer whose non-empty tiles are treated as solid.
+    // Register a TileMap as a static collision world. Collision now comes from
+    // the map's baked per-tile grid (TileMap::collisionAt); solidLayer is kept
+    // for API compatibility but no longer used.
     void addTileMap(TileMap* map, LayerID solidLayer = 0);
     void removeTileMap(TileMap* map);
 

@@ -6,6 +6,7 @@
 #include <cassert>
 #include "Types.hpp"
 #include "AssetManager.hpp"
+#include "Collision.hpp"
 
 namespace PRL {
 
@@ -95,6 +96,15 @@ namespace PRL {
         //! \brief Get tile by world coordinates
         inline Tile& getTileFromWorld(LayerID layer, PosType worldX, PosType worldY);
 
+        //! \brief Baked per-tile collision type (one byte per tile). Out-of-range -> None.
+        //! Built at load time from tileset [collision] bindings, optionally
+        //! overridden per-cell by the map's own [collision] section.
+        inline Collision::TileCollisionType collisionAt(int tileX, int tileY) const noexcept {
+            if (tileX < 0 || tileY < 0 || tileX >= mapSize_.x || tileY >= mapSize_.y)
+                return Collision::TileCollisionType::None;
+            return static_cast<Collision::TileCollisionType>(collisionGrid_[tileY * mapSize_.x + tileX]);
+        }
+
         inline Vec2D<int> tileSize() const noexcept { return tileSize_; }
         inline Vec2D<int> mapSize() const noexcept { return mapSize_; }
         inline Vec2D<int> chunkCount() const noexcept { return chunkCount_; }
@@ -112,6 +122,7 @@ namespace PRL {
         void loadLayerSections_(std::vector<std::vector<std::string>>& layerSections, 
             const std::vector<std::string>& renderOrder, std::vector<std::vector<Tile>>& fullTilemap);
         void loadCollisionSection_(const std::vector<std::string>& lines);
+        void bakeCollisionGrid_(const std::vector<std::vector<Tile>>& fullTilemap);
         void constructChunks_(const std::vector<std::vector<Tile>>& fullTilemap);
 
         std::vector<TileDefinition> tileDefinitions_; // temporary storage for tilemap data during loading, organized by layer and then by tile ID
@@ -120,6 +131,8 @@ namespace PRL {
         Vec2D<int> chunkCount_;  //!< Size of the map in chunks, i.e. number of chunks in each dimension
 
         std::vector<TileLayer> layers_;
+        std::vector<uint8_t> collisionGrid_;     //!< baked Collision::TileCollisionType per tile
+        std::vector<int16_t> collisionOverride_; //!< parsed [collision] section; -1 = inherit. Cleared after baking.
         std::vector<TileChunk> chunks_;
         std::string textureName_;
         bool hasCollisionLayer_;

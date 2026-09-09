@@ -49,7 +49,7 @@ Entity* label = nullptr;
 CollisionSystem* collisionSystem = nullptr;
 
 // --- Platformer tuning (world units; 1 unit = 1 tile at reference ppu) ---
-static const Vector2D playerSpawn(2.f, 5.f);
+static const Vector2D playerSpawn(3.f, 12.f);
 static const float runSpeed  = 7.f;   // units/s
 static const float runBoost  = 1.6f;  // LSHIFT multiplier
 static const float jumpSpeed = 15.f * 1.5f;  // initial upward velocity, units/s
@@ -61,6 +61,12 @@ static bool playerGroundedPrev = false; // for landing detection (edge)
 
 static SoundHandle jumpSound;
 static SoundHandle landSound;
+
+//! Gameplay input actions. Dense integer IDs: Input stores bindings in a flat
+//! vector and every query is a plain array index (no strings, no hashing).
+enum class Action : Input::ActionID {
+    Left, Right, Jump, Run, Reset, ToggleDebug, Quit
+};
 
 bool Game::isRunning = false;
 
@@ -96,17 +102,17 @@ void Game::init() {
     debugDraw.setCollisionSystem(collisionSystem);
 
     // Input action bindings (Input::update() runs each frame in handleEvents)
-    Input::bindAction("left",         { SDL_SCANCODE_A, SDL_SCANCODE_LEFT });
-    Input::bindAction("right",        { SDL_SCANCODE_D, SDL_SCANCODE_RIGHT });
-    Input::bindAction("jump",         { SDL_SCANCODE_SPACE });
-    Input::bindAction("run",          { SDL_SCANCODE_LSHIFT });
-    Input::bindAction("reset",        { SDL_SCANCODE_R });
-    Input::bindAction("toggle_debug", { SDL_SCANCODE_C });
-    Input::bindAction("quit",         { SDL_SCANCODE_ESCAPE });
+    Input::bindAction(Action::Left,        { SDL_SCANCODE_A, SDL_SCANCODE_LEFT });
+    Input::bindAction(Action::Right,       { SDL_SCANCODE_D, SDL_SCANCODE_RIGHT });
+    Input::bindAction(Action::Jump,        { SDL_SCANCODE_SPACE });
+    Input::bindAction(Action::Run,         { SDL_SCANCODE_LSHIFT });
+    Input::bindAction(Action::Reset,       { SDL_SCANCODE_R });
+    Input::bindAction(Action::ToggleDebug, { SDL_SCANCODE_C });
+    Input::bindAction(Action::Quit,        { SDL_SCANCODE_ESCAPE });
 
     // Load assets
     assetManager.addAsset("player", "assets/player_anims.dat");
-    assetManager.addAsset("tileset", "assets/terrain_asset.dat");
+    assetManager.addAsset("pearl_tileset", "assets/pearl_tiles.dat");
     assetManager.addFont("baseFont", "assets/font.ttf", 16);
     jumpSound = assetManager.addSound("jump", "assets/jump.mp3");
     landSound = assetManager.addSound("land", "assets/land.mp3");
@@ -142,7 +148,7 @@ void Game::init() {
     // --- Tilemap: rendered by TileMapSystem, solid for the CollisionSystem ---
     tileMap->addComponent<TileMapComponent>();
     TileMap& map = tileMap->getComponent<TileMapComponent>().map;
-    map.loadMap("assets/testmap.map");
+    map.loadMap("assets/pearl_level.map");
     collisionSystem->addTileMap(&map, 0); // layer 0 treated as solid for now
 
     // --- Camera: follow the player, stay inside the map ---
@@ -176,24 +182,24 @@ void Game::handleEvents() {
     // Snapshot the keyboard once per frame; everything below uses edge-aware queries.
     Input::update();
 
-    if (Input::wasActionPressed("quit")) isRunning = false;
+    if (Input::wasActionPressed(Action::Quit)) isRunning = false;
 
-    if (Input::wasActionPressed("toggle_debug")) {
+    if (Input::wasActionPressed(Action::ToggleDebug)) {
         DebugDrawSystem::toggle(); // 'c' shows/hides all collision AABBs
     }
 
-    if (Input::wasActionPressed("reset")) {
+    if (Input::wasActionPressed(Action::Reset)) {
         player->getComponent<TransformComponent>().setPos(playerSpawn.x, playerSpawn.y);
         player->getComponent<VelocityComponent>().setVel(0.f, 0.f);
         Core::getCamera().snapToTarget();
     }
 
     // Edge: only the frame the key goes down. Held space does not re-request.
-    if (Input::wasActionPressed("jump")) jumpRequested = true;
+    if (Input::wasActionPressed(Action::Jump)) jumpRequested = true;
 
     // Level: held keys drive continuous movement.
-    float vx = Input::getAxis("left", "right") * runSpeed;
-    if (Input::isActionDown("run")) vx *= runBoost;
+    float vx = Input::getAxis(Action::Left, Action::Right) * runSpeed;
+    if (Input::isActionDown(Action::Run)) vx *= runBoost;
 
     VelocityComponent& vel = player->getComponent<VelocityComponent>();
     vel.linearVel.x = vx;
@@ -238,6 +244,17 @@ void Game::update() {
     // Landing = airborne -> grounded edge across fixed steps.
     if (playerGrounded && !playerGroundedPrev) {
         assetManager.playSound(landSound);
+    }
+
+    // Hazard tiles (spikes...) emit overlap contacts without resolution:
+    // touching one sends the player back to spawn.
+    for (const ContactEvent& contact : collisionSystem->contacts()) {
+        if (contact.entityA == player && contact.tileType == Collision::TileCollisionType::Hazard) {
+            player->getComponent<TransformComponent>().setPos(playerSpawn.x, playerSpawn.y);
+            player->getComponent<VelocityComponent>().setVel(0.f, 0.f);
+            Core::getCamera().snapToTarget();
+            break;
+        }
     }
 
     // Placeholder jump — replaced by a proper PlayerController (coyote time,

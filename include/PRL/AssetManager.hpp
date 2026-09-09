@@ -66,6 +66,7 @@ public:
     TextureAsset(const TextureAsset&) = delete;
     TextureAsset(TextureAsset&& other) noexcept : 
     texture(other.texture), regions(std::move(other.regions)), regionNames(std::move(other.regionNames)), 
+    regionCollision(std::move(other.regionCollision)),
     pixels_per_unit(other.pixels_per_unit), textureSize(other.textureSize), scaleMode(other.scaleMode) {
         other.texture = nullptr; // prevent destructor from freeing the texture
     }
@@ -76,6 +77,7 @@ public:
             texture = other.texture;
             regions = std::move(other.regions);
             regionNames = std::move(other.regionNames);
+            regionCollision = std::move(other.regionCollision);
             pixels_per_unit = other.pixels_per_unit;
             textureSize = other.textureSize;
             scaleMode = other.scaleMode;
@@ -91,6 +93,10 @@ public:
     SDL_Texture* texture;
     std::vector<SpriteRegion> regions;
     std::unordered_map<std::string, std::size_t> regionNames;
+    //! Per-region tile collision binding (Collision::TileCollisionType as uint8_t).
+    //! Parallel to 'regions'; defaults to None. Filled from the [collision]
+    //! section of the .dat file; consumed by TileMap when baking its grid.
+    std::vector<uint8_t> regionCollision;
     int pixels_per_unit;
     Vec2D<int> textureSize;
     SDL_ScaleMode scaleMode;
@@ -251,6 +257,7 @@ public:
 private:
     static void loadTextureSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset);
     static void loadSpriteSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset);
+    static void loadCollisionSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset);
     static void loadAnimationSection_(const std::string& datFile, const std::vector<std::string>& lines, std::size_t textureIndex, std::vector<AnimationAsset>& tempAssets, 
                                       std::vector<std::string>& animNames, const TextureAsset& textureAsset);     
     // static void loadTilesetSection_(const std::vector<std::string>& lines);

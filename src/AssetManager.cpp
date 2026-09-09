@@ -4,6 +4,7 @@
 #include <set>
 #include "SDL2/SDL.h"
 #include "AssetManager.hpp"
+#include "Collision.hpp"
 #include "Logging.hpp"
 #include "TextureManager.hpp"
 #include "ECS/ECS.hpp"
@@ -52,7 +53,7 @@ void AssetManager::addAsset(const std::string& assetID, const std::string& datFi
     }
 
     // Look for sections
-    std::vector<std::string> sections = {"[texture]", "[sprites]", "[animations]"};
+    std::vector<std::string> sections = {"[texture]", "[sprites]", "[animations]", "[collision]"};
     std::unordered_map<std::string, std::vector<std::string>> sectionLines;
     std::string currentSection("");
     for (const auto& l : lines) {
@@ -72,6 +73,7 @@ void AssetManager::addAsset(const std::string& assetID, const std::string& datFi
     TextureAsset tempAsset;
     loadTextureSection_(datFile, sectionLines["[texture]"], tempAsset);
     loadSpriteSection_(datFile, sectionLines["[sprites]"], tempAsset);
+    loadCollisionSection_(datFile, sectionLines["[collision]"], tempAsset);
 
     // Assign a new texture asset slot
     size_t textureIndex;
@@ -249,6 +251,37 @@ void AssetManager::loadSpriteSection_(const string& datFile, const vector<string
     }
     return;
 }
+
+
+
+//! Parses the optional [collision] section of a tileset .dat file:
+//!     <regionName> <none|solid|oneway|ladder|hazard|slope_l|slope_r>
+//! Unlisted regions default to None. Tokens are converted to
+//! Collision::TileCollisionType bytes here, once, at load time.
+void AssetManager::loadCollisionSection_(const std::string& datFile, const std::vector<std::string>& lines, TextureAsset& tempAsset) {
+    tempAsset.regionCollision.assign(tempAsset.regions.size(), 
+        static_cast<uint8_t>(Collision::TileCollisionType::None));
+    if (lines.empty()) return;
+
+    std::string regionName, token;
+    for (const auto& l : lines) {
+        std::istringstream iss(l);
+        if (!(iss >> regionName >> token)) {
+            PRL::Logging::err("Invalid line in [collision] section of asset data file : " + datFile,
+                              "PRL::AssetManager::loadCollisionSection_()");
+            continue;
+        }
+        auto it = tempAsset.regionNames.find(regionName);
+        if (it == tempAsset.regionNames.end()) {
+            PRL::Logging::err("Unknown region '" + regionName + "' in [collision] section of : " + datFile,
+                              "PRL::AssetManager::loadCollisionSection_()");
+            continue;
+        }
+        tempAsset.regionCollision[it->second] =
+            static_cast<uint8_t>(Collision::tileCollisionTypeFromToken(token));
+    }
+}
+
 
 void AssetManager::loadAnimationSection_(const std::string& datFile, const std::vector<std::string>& lines, std::size_t textureIndex, std::vector<AnimationAsset>& tempAssets, 
     std::vector<std::string>& animNames, const TextureAsset& textureAsset) {
